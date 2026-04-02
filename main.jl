@@ -114,6 +114,12 @@ function stepp(t; model)
     1/(1+exp(-(t-to)/ti))
 end
 
+function homogeneous_momentum_sum(Gtt)
+    sumG = similar(Gtt)
+    sumG .= sum(Gtt)
+    return sumG
+end
+
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     (; GL, GG, ΞL, ΞG, ΣL_F, ΣG_F) = data
     
@@ -127,8 +133,11 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     ΞL[t,t′] = Ξl(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
     ΞG[t,t′] = Ξg(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
 
-    ΣL_F[t,t′] = 1im * ΞL[t,t′] .* GL[t,t′]
-    ΣG_F[t,t′] = 1im * ΞG[t,t′] .* GG[t,t′]
+    sumGL = homogeneous_momentum_sum(GL[t,t′])
+    sumGG = homogeneous_momentum_sum(GG[t,t′])
+
+    ΣL_F[t,t′] = 1im * ΞL[t,t′] .* sumGL
+    ΣG_F[t,t′] = 1im * ΞG[t,t′] .* sumGG
 end
 
 # Auxiliary integrator for the first type of integral
@@ -215,8 +224,10 @@ function main(; kwargs...)
     GG[1, 1] = GL[1, 1] .- 1im
     ΞL[1,1] = Ξl(0; model) * 0.0
     ΞG[1,1] = Ξg(0; model) * 0.0
-    ΣL_F[1,1] = 1im * ΞL[1,1] .* GL[1,1]
-    ΣG_F[1,1] = 1im * ΞG[1,1] .* GG[1,1]
+    sumGL = homogeneous_momentum_sum(GL[1,1])
+    sumGG = homogeneous_momentum_sum(GG[1,1])
+    ΣL_F[1,1] = 1im * ΞL[1,1] .* sumGL
+    ΣG_F[1,1] = 1im * ΞG[1,1] .* sumGG
     
     #### Setting the initial dynamical variables
     data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
