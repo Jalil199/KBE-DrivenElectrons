@@ -20,6 +20,7 @@ Base.@kwdef struct ModelElectronBath{Hk}
     to::Float64 = 20.0
     Δk = 2*pi/L
     ks = collect(range(-pi, stop=pi-Δk, length=L))
+    wq::Vector{Float64} = fill(1 / L, L)
     hk::Hk = t -> ϵ_k(ks .- pulse_Gaussian_sin(t; t0, ω0, σ, A);  u, γ)
 end
 
@@ -29,6 +30,8 @@ Base.@kwdef struct DataElectronBath{T}
     
     ΞL::T
     ΞG::T
+    ΞL_q::T
+    ΞG_q::T
     
     ΣL_F::T
     ΣG_F::T
@@ -120,18 +123,32 @@ function homogeneous_momentum_sum(Gtt)
     return sumG
 end
 
+function weighted_kernel_q_from_homogeneous!(Ξq, Ξ, wq, t, t′)
+    Ξq_tt = Ξq[t, t′]
+    Ξ_ref = Ξ[t, t′][1]
+
+    @inbounds for q in eachindex(wq)
+        Ξq_tt[q] = wq[q] * Ξ_ref
+    end
+end
+
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
-    (; GL, GG, ΞL, ΞG, ΣL_F, ΣG_F) = data
+    (; GL, GG, ΞL, ΞG, ΞL_q, ΞG_q, ΣL_F, ΣG_F) = data
+    (; wq) = model
     
     if (n = size(GL, 3)) > size(ΣL_F, 3)
         resize!(ΞL, n)
         resize!(ΞG, n)
+        resize!(ΞL_q, n)
+        resize!(ΞG_q, n)
         resize!(ΣL_F, n)
         resize!(ΣG_F, n)
     end
 
     ΞL[t,t′] = Ξl(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
     ΞG[t,t′] = Ξg(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
+    weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, wq, t, t′)
+    weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, wq, t, t′)
 
     sumGL = homogeneous_momentum_sum(GL[t,t′])
     sumGG = homogeneous_momentum_sum(GG[t,t′])
@@ -204,6 +221,8 @@ function main(; kwargs...)
     
 
     L = model.L
+    @assert length(model.wq) == L "wq must have length L"
+    @assert isapprox(sum(model.wq), 1.0; atol=1e-12) "wq must satisfy sum(wq) = 1"
     u = model.u
     γ = model.γ
     ks = model.ks 
@@ -216,6 +235,8 @@ function main(; kwargs...)
     GG = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΞL = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΞG = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)    
+    ΞL_q = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
+    ΞG_q = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΣL_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΣG_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
       
@@ -224,13 +245,15 @@ function main(; kwargs...)
     GG[1, 1] = GL[1, 1] .- 1im
     ΞL[1,1] = Ξl(0; model) * 0.0
     ΞG[1,1] = Ξg(0; model) * 0.0
+    weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, model.wq, 1, 1)
+    weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, model.wq, 1, 1)
     sumGL = homogeneous_momentum_sum(GL[1,1])
     sumGG = homogeneous_momentum_sum(GG[1,1])
     ΣL_F[1,1] = 1im * ΞL[1,1] .* sumGL
     ΣG_F[1,1] = 1im * ΞG[1,1] .* sumGG
     
     #### Setting the initial dynamical variables
-    data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
+    data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΞL_q=ΞL_q, ΞG_q=ΞG_q, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
   
     #### Setting the time integration
     tmax = 10
