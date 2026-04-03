@@ -21,6 +21,7 @@ Base.@kwdef struct ModelElectronBath{Hk}
     Δk = 2*pi/L
     ks = collect(range(-pi, stop=pi-Δk, length=L))
     wq::Vector{Float64} = fill(1 / L, L)
+    kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
     hk::Hk = t -> ϵ_k(ks .- pulse_Gaussian_sin(t; t0, ω0, σ, A);  u, γ)
 end
 
@@ -132,9 +133,24 @@ function weighted_kernel_q_from_homogeneous!(Ξq, Ξ, wq, t, t′)
     end
 end
 
+function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
+    fill!(Σtt, 0)
+    L = length(Σtt)
+
+    @inbounds for k in 1:L
+        acc = zero(eltype(Σtt))
+        for q in eachindex(Ξq_tt)
+            acc += Ξq_tt[q] * Gtt[kmq_idx[k, q]]
+        end
+        Σtt[k] = 1im * acc
+    end
+
+    return Σtt
+end
+
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     (; GL, GG, ΞL, ΞG, ΞL_q, ΞG_q, ΣL_F, ΣG_F) = data
-    (; wq) = model
+    (; wq, kmq_idx) = model
     
     if (n = size(GL, 3)) > size(ΣL_F, 3)
         resize!(ΞL, n)
@@ -149,12 +165,8 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     ΞG[t,t′] = Ξg(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
     weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, wq, t, t′)
     weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, wq, t, t′)
-
-    sumGL = homogeneous_momentum_sum(GL[t,t′])
-    sumGG = homogeneous_momentum_sum(GG[t,t′])
-
-    ΣL_F[t,t′] = 1im * ΞL[t,t′] .* sumGL
-    ΣG_F[t,t′] = 1im * ΞG[t,t′] .* sumGG
+    apply_momentum_convolution!(ΣL_F[t,t′], ΞL_q[t,t′], GL[t,t′], kmq_idx)
+    apply_momentum_convolution!(ΣG_F[t,t′], ΞG_q[t,t′], GG[t,t′], kmq_idx)
 end
 
 # Auxiliary integrator for the first type of integral
@@ -247,10 +259,8 @@ function main(; kwargs...)
     ΞG[1,1] = Ξg(0; model) * 0.0
     weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, model.wq, 1, 1)
     weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, model.wq, 1, 1)
-    sumGL = homogeneous_momentum_sum(GL[1,1])
-    sumGG = homogeneous_momentum_sum(GG[1,1])
-    ΣL_F[1,1] = 1im * ΞL[1,1] .* sumGL
-    ΣG_F[1,1] = 1im * ΞG[1,1] .* sumGG
+    apply_momentum_convolution!(ΣL_F[1,1], ΞL_q[1,1], GL[1,1], model.kmq_idx)
+    apply_momentum_convolution!(ΣG_F[1,1], ΞG_q[1,1], GG[1,1], model.kmq_idx)
     
     #### Setting the initial dynamical variables
     data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΞL_q=ΞL_q, ΞG_q=ΞG_q, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
