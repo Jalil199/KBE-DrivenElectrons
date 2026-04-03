@@ -4,6 +4,20 @@ using FFTW, Interpolations
 using Tullio
 using JLD2
 
+function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
+    if profile == :uniform
+        wq_raw = ones(Float64, length(ks))
+    elseif profile == :power_exp
+        wq_raw = abs.(ks) .^ s_q .* exp.(-abs.(ks) ./ λ_q)
+    else
+        throw(ArgumentError("Unknown momentum weight profile: $profile"))
+    end
+
+    wq_sum = sum(wq_raw)
+    wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
+    return wq_raw ./ wq_sum
+end
+
 Base.@kwdef struct ModelElectronBath{Hk}
     L::Int = 100
     T::Float64 = 0.1
@@ -20,7 +34,10 @@ Base.@kwdef struct ModelElectronBath{Hk}
     to::Float64 = 20.0
     Δk = 2*pi/L
     ks = collect(range(-pi, stop=pi-Δk, length=L))
-    wq::Vector{Float64} = fill(1 / L, L)
+    wq_profile::Symbol = :uniform
+    s_q::Float64 = 0.0
+    λ_q::Float64 = 1.0
+    wq::Vector{Float64} = make_momentum_weights(wq_profile; ks, s_q, λ_q)
     kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
     hk::Hk = t -> ϵ_k(ks .- pulse_Gaussian_sin(t; t0, ω0, σ, A);  u, γ)
 end
