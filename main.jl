@@ -18,6 +18,25 @@ function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
     return wq_raw ./ wq_sum
 end
 
+
+function ωbath_value(q::Real; dispersion_type::Symbol, ωb0::Float64, v_b::Float64)
+    if dispersion_type == :linear
+        return ωb0 + v_b * abs(q)
+    elseif dispersion_type == :sin_lattice
+        return ωb0 + 2v_b * abs(sin(q / 2))
+    else
+        throw(ArgumentError("Unknown dispersion_type: $dispersion_type"))
+    end
+end
+
+function make_bath_dispersion(dispersion_type::Symbol; qs, ωb0::Float64, v_b::Float64)
+    return [ωbath_value(q; dispersion_type, ωb0, v_b) for q in qs]
+end
+
+function make_bath_coupling2(; qs, g_b::Float64)
+    return fill(g_b^2, length(qs))
+end
+
 Base.@kwdef struct ModelElectronBath{Hk}
     L::Int = 100
     T::Float64 = 0.1
@@ -32,12 +51,21 @@ Base.@kwdef struct ModelElectronBath{Hk}
     A::Float64 = 0.1
     ti::Float64 = 3.0
     to::Float64 = 20.0
+    bath_type::Symbol = :spectral_density
+    dispersion_type::Symbol = :linear
+    ωb0::Float64 = 0.2
+    v_b::Float64 = 1.0
+    g_b::Float64 = 0.1
     Δk = 2*pi/L
     ks = collect(range(-pi, stop=pi-Δk, length=L))
     wq_profile::Symbol = :uniform
     s_q::Float64 = 0.0
     λ_q::Float64 = 1.0
     wq::Vector{Float64} = make_momentum_weights(wq_profile; ks, s_q, λ_q)
+    bath_qs::Vector{Float64} = copy(ks)
+    ωq::Vector{Float64} = make_bath_dispersion(dispersion_type; qs=bath_qs, ωb0, v_b)
+    g2q::Vector{Float64} = make_bath_coupling2(; qs=bath_qs, g_b)
+    nBq::Vector{Float64} = bose.(ωq; model=(; T))
     kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
     hk::Hk = t -> ϵ_k(ks .- pulse_Gaussian_sin(t; t0, ω0, σ, A);  u, γ)
 end
@@ -150,6 +178,22 @@ function weighted_kernel_q_from_homogeneous!(Ξq, Ξ, wq, t, t′)
     end
 end
 
+
+function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; greater::Bool)
+    @inbounds for q in eachindex(Ξq_tt)
+        nq = nBq[q]
+        pref = greater ? (nq + 1) : nq
+        Ξq_tt[q] = -1im * g2q[q] * pref * exp(-1im * ωq[q] * τ)
+    end
+    return Ξq_tt
+end
+
+function fill_homogeneous_from_q!(Ξtt, Ξq_tt)
+    Ξ_ref = sum(Ξq_tt) / length(Ξq_tt)
+    Ξtt .= Ξ_ref
+    return Ξtt
+end
+
 function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
     fill!(Σtt, 0)
     L = length(Σtt)
@@ -167,8 +211,8 @@ end
 
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     (; GL, GG, ΞL, ΞG, ΞL_q, ΞG_q, ΣL_F, ΣG_F) = data
-    (; wq, kmq_idx) = model
-    
+    (; bath_type, wq, kmq_idx, ωq, g2q, nBq) = model
+
     if (n = size(GL, 3)) > size(ΣL_F, 3)
         resize!(ΞL, n)
         resize!(ΞG, n)
@@ -178,10 +222,25 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
         resize!(ΣG_F, n)
     end
 
-    ΞL[t,t′] = Ξl(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
-    ΞG[t,t′] = Ξg(times[t] - times[t′]; model) * stepp.(times[t]; model) * stepp.(times[t′]; model)
-    weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, wq, t, t′)
-    weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, wq, t, t′)
+    switch = stepp.(times[t]; model) * stepp.(times[t′]; model)
+    τ = times[t] - times[t′]
+
+    if bath_type == :spectral_density
+        ΞL[t, t′] = Ξl(τ; model) * switch
+        ΞG[t, t′] = Ξg(τ; model) * switch
+        weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, wq, t, t′)
+        weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, wq, t, t′)
+    elseif bath_type == :dispersion
+        fill_dispersion_kernel_q!(ΞL_q[t, t′], τ, ωq, g2q, nBq; greater=false)
+        fill_dispersion_kernel_q!(ΞG_q[t, t′], τ, ωq, g2q, nBq; greater=true)
+        ΞL_q[t, t′] .*= switch
+        ΞG_q[t, t′] .*= switch
+        fill_homogeneous_from_q!(ΞL[t, t′], ΞL_q[t, t′])
+        fill_homogeneous_from_q!(ΞG[t, t′], ΞG_q[t, t′])
+    else
+        throw(ArgumentError("Unknown bath_type: $(bath_type). Use :spectral_density or :dispersion."))
+    end
+
     apply_momentum_convolution!(ΣL_F[t,t′], ΞL_q[t,t′], GL[t,t′], kmq_idx)
     apply_momentum_convolution!(ΣG_F[t,t′], ΞG_q[t,t′], GG[t,t′], kmq_idx)
 end
@@ -250,8 +309,12 @@ function main(; kwargs...)
     
 
     L = model.L
+    @assert model.bath_type in (:spectral_density, :dispersion) "bath_type must be :spectral_density or :dispersion"
+    @assert model.dispersion_type in (:linear, :sin_lattice) "dispersion_type must be :linear or :sin_lattice"
     @assert length(model.wq) == L "wq must have length L"
     @assert isapprox(sum(model.wq), 1.0; atol=1e-12) "wq must satisfy sum(wq) = 1"
+    @assert length(model.ωq) == L "ωq must have length L"
+    @assert length(model.g2q) == L "g2q must have length L"
     u = model.u
     γ = model.γ
     ks = model.ks 
@@ -274,8 +337,15 @@ function main(; kwargs...)
     GG[1, 1] = GL[1, 1] .- 1im
     ΞL[1,1] = Ξl(0; model) * 0.0
     ΞG[1,1] = Ξg(0; model) * 0.0
-    weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, model.wq, 1, 1)
-    weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, model.wq, 1, 1)
+    if model.bath_type == :spectral_density
+        weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, model.wq, 1, 1)
+        weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, model.wq, 1, 1)
+    else
+        fill_dispersion_kernel_q!(ΞL_q[1,1], 0.0, model.ωq, model.g2q, model.nBq; greater=false)
+        fill_dispersion_kernel_q!(ΞG_q[1,1], 0.0, model.ωq, model.g2q, model.nBq; greater=true)
+        ΞL_q[1,1] .*= 0.0
+        ΞG_q[1,1] .*= 0.0
+    end
     apply_momentum_convolution!(ΣL_F[1,1], ΞL_q[1,1], GL[1,1], model.kmq_idx)
     apply_momentum_convolution!(ΣG_F[1,1], ΞG_q[1,1], GG[1,1], model.kmq_idx)
     
