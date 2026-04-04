@@ -170,7 +170,9 @@ function homogeneous_momentum_sum(Gtt)
 end
 
 function weighted_kernel_q_from_homogeneous!(Ξq, Ξ, wq, t, t′)
+    # Persistent q-resolved storage at fixed two-time point (t,t′).
     Ξq_tt = @view Ξq.data[:, t, t′]
+    # Homogeneous reference value Ξ(t,t′), same for all momentum components.
     Ξ_ref = Ξ.data[1, t, t′]
 
     @inbounds for q in eachindex(wq)
@@ -210,6 +212,8 @@ function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
     return Σtt
 end
 
+# Return a persistent 1D view into the underlying GreenFunction storage.
+# This avoids ambiguous mutation semantics of wrapper-style indexing gf[t,t′].
 @inline kbe_storage_tt(gf, t, t′) = @view gf.data[:, t, t′]
 
 
@@ -262,8 +266,10 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
         resize!(ΣG_F, n)
     end
 
+    # Relative time and adiabatic switch factor used in both bath branches.
     switch = stepp.(times[t]; model) * stepp.(times[t′]; model)
     τ = times[t] - times[t′]
+    # Persistent per-(t,t′) views for kernels, propagators, and self-energies.
     ΞL_tt = kbe_storage_tt(ΞL, t, t′)
     ΞG_tt = kbe_storage_tt(ΞG, t, t′)
     ΞL_q_tt = kbe_storage_tt(ΞL_q, t, t′)
@@ -273,12 +279,14 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     ΣL_tt = kbe_storage_tt(ΣL_F, t, t′)
     ΣG_tt = kbe_storage_tt(ΣG_F, t, t′)
 
+    # Temporary buffers built first, then copied back to persistent storage.
     tmpΞL = similar(ΞL_q_tt)
     tmpΞG = similar(ΞG_q_tt)
     tmpΣL = similar(ΣL_tt)
     tmpΣG = similar(ΣG_tt)
 
     if bath_type == :spectral_density
+        # Spectral-density branch: first construct homogeneous Ξ^</>(t,t′).
         ΞL_vals = Ξl(τ; model) .* switch
         ΞG_vals = Ξg(τ; model) .* switch
         copyto!(ΞL_tt, ΞL_vals)
@@ -291,6 +299,7 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
             tmpΞG[q] = wq[q] * ΞG_ref
         end
     elseif bath_type == :dispersion
+        # Dispersion branch: explicitly construct Ξ_q^</>(τ) mode-by-mode.
         fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; greater=false)
         fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; greater=true)
         tmpΞL .*= switch
@@ -301,9 +310,11 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
         throw(ArgumentError("Unknown bath_type: $(bath_type). Use :spectral_density or :dispersion."))
     end
 
+    # Born/Fock convolution Σ_k = i * Σ_q Ξ_q * G_{k-q} at fixed (t,t′).
     apply_momentum_convolution!(tmpΣL, tmpΞL, GL_tt, kmq_idx)
     apply_momentum_convolution!(tmpΣG, tmpΞG, GG_tt, kmq_idx)
 
+    # Explicit persistent write-back into GreenFunction storage.
     copyto!(ΞL_q_tt, tmpΞL)
     copyto!(ΞG_q_tt, tmpΞG)
     copyto!(ΣL_tt, tmpΣL)
