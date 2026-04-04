@@ -210,6 +210,43 @@ function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
     return Σtt
 end
 
+
+function Xi_k_at_time(t; model, t′::Real=0.0, greater::Bool=false, apply_switch::Bool=true)
+    τ = t - t′
+    switch = apply_switch ? stepp(t; model) * stepp(t′; model) : 1.0
+
+    if model.bath_type == :spectral_density
+        ξτ = greater ? Ξg(τ; model) : Ξl(τ; model)
+        return ξτ .* switch
+    elseif model.bath_type == :dispersion
+        ξk = similar(model.ks, ComplexF64)
+        fill_dispersion_kernel_q!(ξk, τ, model.ωq, model.g2q, model.nBq; greater=greater)
+        return ξk .* switch
+    else
+        throw(ArgumentError("Unknown bath_type: $(model.bath_type). Use :spectral_density or :dispersion."))
+    end
+end
+
+function plot_Xi_vs_k(times; model=ModelElectronBath(), t_ref::Real=0.0, greater::Bool=false, component::Symbol=:real, apply_switch::Bool=true)
+    @assert component in (:real, :imag, :abs) "component must be :real, :imag, or :abs"
+    import Plots: plot, plot!
+
+    plt = nothing
+    for t in times
+        ξk = Xi_k_at_time(t; model=model, t′=t_ref, greater=greater, apply_switch=apply_switch)
+        y = component === :real ? real.(ξk) : component === :imag ? imag.(ξk) : abs.(ξk)
+        label = "t=$(round(t; digits=3)), t′=$(round(t_ref; digits=3))"
+
+        if plt === nothing
+            plt = plot(model.ks, y; label=label, xlabel="k", ylabel="Ξ(k)", lw=2)
+        else
+            plot!(plt, model.ks, y; label=label, lw=2)
+        end
+    end
+
+    return plt
+end
+
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     (; GL, GG, ΞL, ΞG, ΞL_q, ΞG_q, ΣL_F, ΣG_F) = data
     (; bath_type, wq, kmq_idx, ωq, g2q, nBq) = model
