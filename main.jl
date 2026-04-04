@@ -183,7 +183,8 @@ function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; greater::Bool)
     @inbounds for q in eachindex(Ξq_tt)
         nq = nBq[q]
         pref = greater ? (nq + 1) : nq
-        Ξq_tt[q] = -1im * g2q[q] * pref * exp(-1im * ωq[q] * τ)
+        pref_tr = greater ? nq : (nq + 1)
+        Ξq_tt[q] = -1im * g2q[q] * (pref * exp(-1im * ωq[q] * τ) + pref_tr * exp(1im * ωq[q] * τ))
     end
     return Ξq_tt
 end
