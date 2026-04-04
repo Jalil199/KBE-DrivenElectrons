@@ -170,8 +170,8 @@ function homogeneous_momentum_sum(Gtt)
 end
 
 function weighted_kernel_q_from_homogeneous!(Ξq, Ξ, wq, t, t′)
-    Ξq_tt = Ξq[t, t′]
-    Ξ_ref = Ξ[t, t′][1]
+    Ξq_tt = @view Ξq.data[:, t, t′]
+    Ξ_ref = Ξ.data[1, t, t′]
 
     @inbounds for q in eachindex(wq)
         Ξq_tt[q] = wq[q] * Ξ_ref
@@ -209,6 +209,8 @@ function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
 
     return Σtt
 end
+
+@inline kbe_storage_tt(gf, t, t′) = @view gf.data[:, t, t′]
 
 
 function Xi_k_at_time(t; model, t′::Real=0.0, greater::Bool=false, apply_switch::Bool=true)
@@ -262,25 +264,50 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
 
     switch = stepp.(times[t]; model) * stepp.(times[t′]; model)
     τ = times[t] - times[t′]
+    ΞL_tt = kbe_storage_tt(ΞL, t, t′)
+    ΞG_tt = kbe_storage_tt(ΞG, t, t′)
+    ΞL_q_tt = kbe_storage_tt(ΞL_q, t, t′)
+    ΞG_q_tt = kbe_storage_tt(ΞG_q, t, t′)
+    GL_tt = kbe_storage_tt(GL, t, t′)
+    GG_tt = kbe_storage_tt(GG, t, t′)
+    ΣL_tt = kbe_storage_tt(ΣL_F, t, t′)
+    ΣG_tt = kbe_storage_tt(ΣG_F, t, t′)
+
+    tmpΞL = similar(ΞL_q_tt)
+    tmpΞG = similar(ΞG_q_tt)
+    tmpΣL = similar(ΣL_tt)
+    tmpΣG = similar(ΣG_tt)
 
     if bath_type == :spectral_density
-        ΞL[t, t′] = Ξl(τ; model) * switch
-        ΞG[t, t′] = Ξg(τ; model) * switch
-        weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, wq, t, t′)
-        weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, wq, t, t′)
+        ΞL_vals = Ξl(τ; model) .* switch
+        ΞG_vals = Ξg(τ; model) .* switch
+        copyto!(ΞL_tt, ΞL_vals)
+        copyto!(ΞG_tt, ΞG_vals)
+
+        ΞL_ref = ΞL_tt[1]
+        ΞG_ref = ΞG_tt[1]
+        @inbounds for q in eachindex(wq)
+            tmpΞL[q] = wq[q] * ΞL_ref
+            tmpΞG[q] = wq[q] * ΞG_ref
+        end
     elseif bath_type == :dispersion
-        fill_dispersion_kernel_q!(ΞL_q[t, t′], τ, ωq, g2q, nBq; greater=false)
-        fill_dispersion_kernel_q!(ΞG_q[t, t′], τ, ωq, g2q, nBq; greater=true)
-        ΞL_q[t, t′] .*= switch
-        ΞG_q[t, t′] .*= switch
-        fill_homogeneous_from_q!(ΞL[t, t′], ΞL_q[t, t′])
-        fill_homogeneous_from_q!(ΞG[t, t′], ΞG_q[t, t′])
+        fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; greater=false)
+        fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; greater=true)
+        tmpΞL .*= switch
+        tmpΞG .*= switch
+        fill_homogeneous_from_q!(ΞL_tt, tmpΞL)
+        fill_homogeneous_from_q!(ΞG_tt, tmpΞG)
     else
         throw(ArgumentError("Unknown bath_type: $(bath_type). Use :spectral_density or :dispersion."))
     end
 
-    apply_momentum_convolution!(ΣL_F[t,t′], ΞL_q[t,t′], GL[t,t′], kmq_idx)
-    apply_momentum_convolution!(ΣG_F[t,t′], ΞG_q[t,t′], GG[t,t′], kmq_idx)
+    apply_momentum_convolution!(tmpΣL, tmpΞL, GL_tt, kmq_idx)
+    apply_momentum_convolution!(tmpΣG, tmpΞG, GG_tt, kmq_idx)
+
+    copyto!(ΞL_q_tt, tmpΞL)
+    copyto!(ΞG_q_tt, tmpΞG)
+    copyto!(ΣL_tt, tmpΣL)
+    copyto!(ΣG_tt, tmpΣG)
 end
 
 # Auxiliary integrator for the first type of integral
@@ -379,13 +406,17 @@ function main(; kwargs...)
         weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, model.wq, 1, 1)
         weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, model.wq, 1, 1)
     else
-        fill_dispersion_kernel_q!(ΞL_q[1,1], 0.0, model.ωq, model.g2q, model.nBq; greater=false)
-        fill_dispersion_kernel_q!(ΞG_q[1,1], 0.0, model.ωq, model.g2q, model.nBq; greater=true)
-        ΞL_q[1,1] .*= 0.0
-        ΞG_q[1,1] .*= 0.0
+        tmpΞL = similar(model.ks, ComplexF64)
+        tmpΞG = similar(model.ks, ComplexF64)
+        fill_dispersion_kernel_q!(tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; greater=false)
+        fill_dispersion_kernel_q!(tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; greater=true)
+        tmpΞL .*= 0.0
+        tmpΞG .*= 0.0
+        copyto!(kbe_storage_tt(ΞL_q, 1, 1), tmpΞL)
+        copyto!(kbe_storage_tt(ΞG_q, 1, 1), tmpΞG)
     end
-    apply_momentum_convolution!(ΣL_F[1,1], ΞL_q[1,1], GL[1,1], model.kmq_idx)
-    apply_momentum_convolution!(ΣG_F[1,1], ΞG_q[1,1], GG[1,1], model.kmq_idx)
+    apply_momentum_convolution!(kbe_storage_tt(ΣL_F, 1, 1), kbe_storage_tt(ΞL_q, 1, 1), kbe_storage_tt(GL, 1, 1), model.kmq_idx)
+    apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), kbe_storage_tt(ΞG_q, 1, 1), kbe_storage_tt(GG, 1, 1), model.kmq_idx)
     
     #### Setting the initial dynamical variables
     data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΞL_q=ΞL_q, ΞG_q=ΞG_q, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
