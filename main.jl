@@ -76,11 +76,10 @@ Base.@kwdef struct DataElectronBath{T}
     
     ΞL::T
     ΞG::T
-    ΞL_q::T
-    ΞG_q::T
     
     ΣL_F::T
     ΣG_F::T
+    workspace::NamedTuple
 end
 
 function fermi(ϵ; model)
@@ -254,14 +253,13 @@ function plot_Xi_vs_k(times; model=ModelElectronBath(), t_ref::Real=0.0, greater
 end
 
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
-    (; GL, GG, ΞL, ΞG, ΞL_q, ΞG_q, ΣL_F, ΣG_F) = data
+    (; GL, GG, ΞL, ΞG, ΣL_F, ΣG_F, workspace) = data
     (; bath_type, wq, kmq_idx, ωq, g2q, nBq) = model
+    (; tmpΞL, tmpΞG, tmpΣL, tmpΣG) = workspace
 
     if (n = size(GL, 3)) > size(ΣL_F, 3)
         resize!(ΞL, n)
         resize!(ΞG, n)
-        resize!(ΞL_q, n)
-        resize!(ΞG_q, n)
         resize!(ΣL_F, n)
         resize!(ΣG_F, n)
     end
@@ -272,18 +270,10 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     # Persistent per-(t,t′) views for kernels, propagators, and self-energies.
     ΞL_tt = kbe_storage_tt(ΞL, t, t′)
     ΞG_tt = kbe_storage_tt(ΞG, t, t′)
-    ΞL_q_tt = kbe_storage_tt(ΞL_q, t, t′)
-    ΞG_q_tt = kbe_storage_tt(ΞG_q, t, t′)
     GL_tt = kbe_storage_tt(GL, t, t′)
     GG_tt = kbe_storage_tt(GG, t, t′)
     ΣL_tt = kbe_storage_tt(ΣL_F, t, t′)
     ΣG_tt = kbe_storage_tt(ΣG_F, t, t′)
-
-    # Temporary buffers built first, then copied back to persistent storage.
-    tmpΞL = similar(ΞL_q_tt)
-    tmpΞG = similar(ΞG_q_tt)
-    tmpΣL = similar(ΣL_tt)
-    tmpΣG = similar(ΣG_tt)
 
     if bath_type == :spectral_density
         # Spectral-density branch: first construct homogeneous Ξ^</>(t,t′).
@@ -315,8 +305,6 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     apply_momentum_convolution!(tmpΣG, tmpΞG, GG_tt, kmq_idx)
 
     # Explicit persistent write-back into GreenFunction storage.
-    copyto!(ΞL_q_tt, tmpΞL)
-    copyto!(ΞG_q_tt, tmpΞG)
     copyto!(ΣL_tt, tmpΣL)
     copyto!(ΣG_tt, tmpΣG)
 end
@@ -403,10 +391,14 @@ function main(; kwargs...)
     GG = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΞL = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΞG = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)    
-    ΞL_q = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
-    ΞG_q = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΣL_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΣG_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
+    workspace = (
+        tmpΞL = similar(model.ks, ComplexF64),
+        tmpΞG = similar(model.ks, ComplexF64),
+        tmpΣL = similar(model.ks, ComplexF64),
+        tmpΣG = similar(model.ks, ComplexF64),
+    )
       
     #### Initial conditions lesser and greater Green's functions
     GL[1, 1] = 1im * fermi.(ϵ_k(ks;  u, γ); model)
@@ -414,23 +406,23 @@ function main(; kwargs...)
     ΞL[1,1] = Ξl(0; model) * 0.0
     ΞG[1,1] = Ξg(0; model) * 0.0
     if model.bath_type == :spectral_density
-        weighted_kernel_q_from_homogeneous!(ΞL_q, ΞL, model.wq, 1, 1)
-        weighted_kernel_q_from_homogeneous!(ΞG_q, ΞG, model.wq, 1, 1)
+        ΞL_ref = kbe_storage_tt(ΞL, 1, 1)[1]
+        ΞG_ref = kbe_storage_tt(ΞG, 1, 1)[1]
+        @inbounds for q in eachindex(model.wq)
+            workspace.tmpΞL[q] = model.wq[q] * ΞL_ref
+            workspace.tmpΞG[q] = model.wq[q] * ΞG_ref
+        end
     else
-        tmpΞL = similar(model.ks, ComplexF64)
-        tmpΞG = similar(model.ks, ComplexF64)
-        fill_dispersion_kernel_q!(tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; greater=false)
-        fill_dispersion_kernel_q!(tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; greater=true)
-        tmpΞL .*= 0.0
-        tmpΞG .*= 0.0
-        copyto!(kbe_storage_tt(ΞL_q, 1, 1), tmpΞL)
-        copyto!(kbe_storage_tt(ΞG_q, 1, 1), tmpΞG)
+        fill_dispersion_kernel_q!(workspace.tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; greater=false)
+        fill_dispersion_kernel_q!(workspace.tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; greater=true)
+        workspace.tmpΞL .*= 0.0
+        workspace.tmpΞG .*= 0.0
     end
-    apply_momentum_convolution!(kbe_storage_tt(ΣL_F, 1, 1), kbe_storage_tt(ΞL_q, 1, 1), kbe_storage_tt(GL, 1, 1), model.kmq_idx)
-    apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), kbe_storage_tt(ΞG_q, 1, 1), kbe_storage_tt(GG, 1, 1), model.kmq_idx)
+    apply_momentum_convolution!(kbe_storage_tt(ΣL_F, 1, 1), workspace.tmpΞL, kbe_storage_tt(GL, 1, 1), model.kmq_idx)
+    apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), workspace.tmpΞG, kbe_storage_tt(GG, 1, 1), model.kmq_idx)
     
     #### Setting the initial dynamical variables
-    data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΞL_q=ΞL_q, ΞG_q=ΞG_q, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
+    data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΣL_F=ΣL_F, ΣG_F=ΣG_F, workspace=workspace)
   
     #### Setting the time integration
     tmax = 10
