@@ -429,8 +429,12 @@ function main(; kwargs...)
     )
 
     #### Initial conditions lesser and greater Green's functions
-    GL[1, 1] = 1im * fermi.(ϵ_k(ks; u, γ); model)
-    GG[1, 1] = GL[1, 1] .- 1im
+    # Use persistent views (kbe_storage_tt) for IC writes.
+    # gf[t,t′] returns a copy → mutations via = or .= on that copy do not persist.
+    GL_11 = kbe_storage_tt(GL, 1, 1)
+    GG_11 = kbe_storage_tt(GG, 1, 1)
+    copyto!(GL_11, 1im .* fermi.(ϵ_k(ks; u, γ); model))
+    copyto!(GG_11, GL_11 .- 1im)
     # Σ(0,0) = 0 because the adiabatic switch stepp(0) ≈ 0 kills the bath at t=0.
     fill!(workspace.tmpΞL, zero(ComplexF64))
     fill!(workspace.tmpΞG, zero(ComplexF64))
