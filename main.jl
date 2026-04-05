@@ -168,6 +168,17 @@ function homogeneous_momentum_sum(Gtt)
     return sumG
 end
 
+function weighted_kernel_q_from_homogeneous!(Ξq, Ξ, wq, t, t′)
+    # Persistent q-resolved storage at fixed two-time point (t,t′).
+    Ξq_tt = @view Ξq.data[:, t, t′]
+    # Homogeneous reference value Ξ(t,t′), same for all momentum components.
+    Ξ_ref = Ξ.data[1, t, t′]
+
+    @inbounds for q in eachindex(wq)
+        Ξq_tt[q] = wq[q] * Ξ_ref
+    end
+end
+
 
 function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; greater::Bool)
     @inbounds for q in eachindex(Ξq_tt)
@@ -194,7 +205,7 @@ function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
         for q in eachindex(Ξq_tt)
             acc += Ξq_tt[q] * Gtt[kmq_idx[k, q]]
         end
-        Σtt[k] = 1im * acc
+        Σtt[k] = 1im * acc / L
     end
 
     return Σtt
@@ -254,7 +265,7 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     end
 
     # Relative time and adiabatic switch factor used in both bath branches.
-    switch = stepp(times[t]; model) * stepp(times[t′]; model)
+    switch = stepp.(times[t]; model) * stepp.(times[t′]; model)
     τ = times[t] - times[t′]
     # Persistent per-(t,t′) views for kernels, propagators, and self-energies.
     ΞL_tt = kbe_storage_tt(ΞL, t, t′)
@@ -405,14 +416,11 @@ function main(; kwargs...)
     ΞL[1,1] = Ξl(0; model) * 0.0
     ΞG[1,1] = Ξg(0; model) * 0.0
     if model.bath_type == :spectral_density
-        # Build q-resolved kernels from homogeneous Ξ(0,0) and write persistently.
-        ΞL_ref = ΞL.data[1, 1, 1]
-        ΞG_ref = ΞG.data[1, 1, 1]
-        ΞL_q_11 = kbe_storage_tt(ΞL_q, 1, 1)
-        ΞG_q_11 = kbe_storage_tt(ΞG_q, 1, 1)
+        ΞL_ref = kbe_storage_tt(ΞL, 1, 1)[1]
+        ΞG_ref = kbe_storage_tt(ΞG, 1, 1)[1]
         @inbounds for q in eachindex(model.wq)
-            ΞL_q_11[q] = model.wq[q] * ΞL_ref
-            ΞG_q_11[q] = model.wq[q] * ΞG_ref
+            workspace.tmpΞL[q] = model.wq[q] * ΞL_ref
+            workspace.tmpΞG[q] = model.wq[q] * ΞG_ref
         end
     else
         tmpΞL = similar(model.ks, ComplexF64)
