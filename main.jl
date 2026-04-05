@@ -270,10 +270,18 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     # Persistent per-(t,t′) views for kernels, propagators, and self-energies.
     ΞL_tt = kbe_storage_tt(ΞL, t, t′)
     ΞG_tt = kbe_storage_tt(ΞG, t, t′)
+    ΞL_q_tt = kbe_storage_tt(ΞL_q, t, t′)
+    ΞG_q_tt = kbe_storage_tt(ΞG_q, t, t′)
     GL_tt = kbe_storage_tt(GL, t, t′)
     GG_tt = kbe_storage_tt(GG, t, t′)
     ΣL_tt = kbe_storage_tt(ΣL_F, t, t′)
     ΣG_tt = kbe_storage_tt(ΣG_F, t, t′)
+
+    # Temporary buffers built first, then copied back to persistent storage.
+    tmpΞL = similar(ΞL_q_tt)
+    tmpΞG = similar(ΞG_q_tt)
+    tmpΣL = similar(ΣL_tt)
+    tmpΣG = similar(ΣG_tt)
 
     if bath_type == :spectral_density
         # Spectral-density branch: first construct homogeneous Ξ^</>(t,t′).
@@ -305,6 +313,8 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
     apply_momentum_convolution!(tmpΣG, tmpΞG, GG_tt, kmq_idx)
 
     # Explicit persistent write-back into GreenFunction storage.
+    copyto!(ΞL_q_tt, tmpΞL)
+    copyto!(ΞG_q_tt, tmpΞG)
     copyto!(ΣL_tt, tmpΣL)
     copyto!(ΣG_tt, tmpΣG)
 end
@@ -413,13 +423,17 @@ function main(; kwargs...)
             workspace.tmpΞG[q] = model.wq[q] * ΞG_ref
         end
     else
-        fill_dispersion_kernel_q!(workspace.tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; greater=false)
-        fill_dispersion_kernel_q!(workspace.tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; greater=true)
-        workspace.tmpΞL .*= 0.0
-        workspace.tmpΞG .*= 0.0
+        tmpΞL = similar(model.ks, ComplexF64)
+        tmpΞG = similar(model.ks, ComplexF64)
+        fill_dispersion_kernel_q!(tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; greater=false)
+        fill_dispersion_kernel_q!(tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; greater=true)
+        tmpΞL .*= 0.0
+        tmpΞG .*= 0.0
+        copyto!(kbe_storage_tt(ΞL_q, 1, 1), tmpΞL)
+        copyto!(kbe_storage_tt(ΞG_q, 1, 1), tmpΞG)
     end
-    apply_momentum_convolution!(kbe_storage_tt(ΣL_F, 1, 1), workspace.tmpΞL, kbe_storage_tt(GL, 1, 1), model.kmq_idx)
-    apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), workspace.tmpΞG, kbe_storage_tt(GG, 1, 1), model.kmq_idx)
+    apply_momentum_convolution!(kbe_storage_tt(ΣL_F, 1, 1), kbe_storage_tt(ΞL_q, 1, 1), kbe_storage_tt(GL, 1, 1), model.kmq_idx)
+    apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), kbe_storage_tt(ΞG_q, 1, 1), kbe_storage_tt(GG, 1, 1), model.kmq_idx)
     
     #### Setting the initial dynamical variables
     data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΣL_F=ΣL_F, ΣG_F=ΣG_F, workspace=workspace)
