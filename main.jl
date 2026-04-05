@@ -76,11 +76,10 @@ Base.@kwdef struct DataElectronBath{T}
     
     ΞL::T
     ΞG::T
-    ΞL_q::T
-    ΞG_q::T
     
     ΣL_F::T
     ΣG_F::T
+    workspace::NamedTuple
 end
 
 function fermi(ϵ; model)
@@ -243,14 +242,13 @@ function plot_Xi_vs_k(times; model=ModelElectronBath(), t_ref::Real=0.0, greater
 end
 
 function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
-    (; GL, GG, ΞL, ΞG, ΞL_q, ΞG_q, ΣL_F, ΣG_F) = data
+    (; GL, GG, ΞL, ΞG, ΣL_F, ΣG_F, workspace) = data
     (; bath_type, wq, kmq_idx, ωq, g2q, nBq) = model
+    (; tmpΞL, tmpΞG, tmpΣL, tmpΣG) = workspace
 
     if (n = size(GL, 3)) > size(ΣL_F, 3)
         resize!(ΞL, n)
         resize!(ΞG, n)
-        resize!(ΞL_q, n)
-        resize!(ΞG_q, n)
         resize!(ΣL_F, n)
         resize!(ΣG_F, n)
     end
@@ -392,10 +390,14 @@ function main(; kwargs...)
     GG = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΞL = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΞG = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)    
-    ΞL_q = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
-    ΞG_q = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΣL_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
     ΣG_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
+    workspace = (
+        tmpΞL = similar(model.ks, ComplexF64),
+        tmpΞG = similar(model.ks, ComplexF64),
+        tmpΣL = similar(model.ks, ComplexF64),
+        tmpΣG = similar(model.ks, ComplexF64),
+    )
       
     #### Initial conditions lesser and greater Green's functions
     GL[1, 1] = 1im * fermi.(ϵ_k(ks;  u, γ); model)
@@ -426,7 +428,7 @@ function main(; kwargs...)
     apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), kbe_storage_tt(ΞG_q, 1, 1), kbe_storage_tt(GG, 1, 1), model.kmq_idx)
     
     #### Setting the initial dynamical variables
-    data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΞL_q=ΞL_q, ΞG_q=ΞG_q, ΣL_F=ΣL_F, ΣG_F=ΣG_F)
+    data = DataElectronBath(GL=GL, GG=GG, ΞL=ΞL, ΞG=ΞG, ΣL_F=ΣL_F, ΣG_F=ΣG_F, workspace=workspace)
   
     #### Setting the time integration
     tmax = 10
