@@ -3,6 +3,7 @@ using LaTeXStrings
 using FFTW, Interpolations
 using Tullio
 using JLD2
+using PyPlot
 
 function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
     if profile == :uniform
@@ -241,7 +242,6 @@ end
 
 function plot_Xi_vs_k(times; model=ModelElectronBath(), t_ref::Real=0.0, greater::Bool=false, component::Symbol=:real, apply_switch::Bool=true)
     @assert component in (:real, :imag, :abs) "component must be :real, :imag, or :abs"
-    import Plots: plot, plot!
 
     plt = nothing
     for t in times
@@ -366,12 +366,20 @@ function fd!(model, data, out, times, h1, h2, t, t′)
     out .-= conj(out)
 end
 
-function main(; kwargs...)
-    #### Read kwargs 
-    
+function make_name(model; tmax)
+    "L$(model.L)_Te$(model.Te)_Tb$(model.Tb)_u$(model.u)_γ$(model.γ)" *
+    "_$(model.bath_type)_α$(model.α)_s$(model.s)_ωc$(model.ωc)" *
+    "_$(model.dispersion_type)_g_b$(model.g_b)_v_b$(model.v_b)_ωb0$(model.ωb0)" *
+    "_$(model.wq_profile)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)" *
+    "_ti$(model.ti)_to$(model.to)_tmax$(tmax)"
+end
+
+function main(; tmax=10, kwargs...)
+    #### Read kwargs
+
     println(kwargs...)
     #### Setting the initial parameters
-    model = ModelElectronBath(;kwargs...)
+    model = ModelElectronBath(; kwargs...)
     
 
     L = model.L
@@ -397,7 +405,6 @@ function main(; kwargs...)
     ΣG_F = GreenFunction(zeros(ComplexF64, L, 1, 1), SkewHermitian)
 
     #### Time integration parameters (needed before workspace for table range)
-    tmax = 10
     atol = 1e-6
     rtol = 1e-5
 
@@ -457,7 +464,8 @@ function main(; kwargs...)
     )
    
     file = "Data"
-    name_p = "Te$(Te)_Tb$(Tb)_α$(α)_s$(s)_ωc$(ωc)_t0$(t0)_ω0$(ω0)_σ$(σ)_A$(A)_ti$(ti)_to$(to)"
+    mkpath(file)
+    name_p = make_name(model; tmax)
     
     @save "$(file)/GL_$(name_p).jld2" GL
     @save "$(file)/GG_$(name_p).jld2" GG
