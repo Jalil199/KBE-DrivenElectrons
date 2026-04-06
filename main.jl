@@ -39,7 +39,8 @@ end
 
 Base.@kwdef struct ModelElectronBath{Hk}
     L::Int = 100
-    T::Float64 = 0.1
+    Te::Float64 = 0.1
+    Tb::Float64 = 0.1
     u::Float64 = 0.0
     γ::Float64 = 1.0
     α::Float64 = 0.0001
@@ -65,7 +66,7 @@ Base.@kwdef struct ModelElectronBath{Hk}
     bath_qs::Vector{Float64} = copy(ks)
     ωq::Vector{Float64} = make_bath_dispersion(dispersion_type; qs=bath_qs, ωb0, v_b)
     g2q::Vector{Float64} = make_bath_coupling2(; qs=bath_qs, g_b)
-    nBq::Vector{Float64} = bose.(ωq; model=(; T))
+    nBq::Vector{Float64} = bose.(ωq; model=(; Tb))
     kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
     hk::Hk = t -> ϵ_k(ks .- pulse_Gaussian_sin(t; t0, ω0, σ, A);  u, γ)
 end
@@ -83,14 +84,14 @@ Base.@kwdef struct DataElectronBath{T}
 end
 
 function fermi(ϵ; model)
-    (; T) = model
-    β = 1/T
+    (; Te) = model
+    β = 1/Te
     1/(exp(β*ϵ)+1)
 end
 
 function bose(ϵ; model)
-    (; T) = model
-    β = 1/T
+    (; Tb) = model
+    β = 1/Tb
     if abs(ϵ)<1e-5
         return 0.0
     else
@@ -383,7 +384,7 @@ function main(; kwargs...)
     u = model.u
     γ = model.γ
     ks = model.ks 
-    (; T, α, s, ωc, t0, ω0, σ, A, ti, to) = model
+    (; Te, Tb, α, s, ωc, t0, ω0, σ, A, ti, to) = model
     #### Initial conditions ####
 
     
@@ -433,7 +434,7 @@ function main(; kwargs...)
     # gf[t,t′] returns a copy → mutations via = or .= on that copy do not persist.
     GL_11 = kbe_storage_tt(GL, 1, 1)
     GG_11 = kbe_storage_tt(GG, 1, 1)
-    copyto!(GL_11, 1im .* fermi.(ϵ_k(ks; u, γ); model))
+    copyto!(GL_11, 1im .* fermi.(ϵ_k(ks; u, γ); model=(; Te)))
     copyto!(GG_11, GL_11 .- 1im)
     # Σ(0,0) = 0 because the adiabatic switch stepp(0) ≈ 0 kills the bath at t=0.
     fill!(workspace.tmpΞL, zero(ComplexF64))
@@ -456,7 +457,7 @@ function main(; kwargs...)
     )
    
     file = "Data"
-    name_p = "T$(T)_α$(α)_s$(s)_ωc$(ωc)_t0$(t0)_ω0$(ω0)_σ$(σ)_A$(A)_ti$(ti)_to$(to)"
+    name_p = "Te$(Te)_Tb$(Tb)_α$(α)_s$(s)_ωc$(ωc)_t0$(t0)_ω0$(ω0)_σ$(σ)_A$(A)_ti$(ti)_to$(to)"
     
     @save "$(file)/GL_$(name_p).jld2" GL
     @save "$(file)/GG_$(name_p).jld2" GG
