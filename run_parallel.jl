@@ -15,11 +15,18 @@ tmax  = 10
 force = false   # set true to rerun even if output files already exist
 
 sweep = (
-    L   = [100],
-    Te  = [0.1, 0.5, 1.0],
-    Tb  = [0.2, 0.8],
-    α   = [0.2],
-    A   = [0.5],
+    L               = [100],
+    bath_type       = [:dispersion],
+    dispersion_type = [:linear],
+    boson_kernel    = [:delta],
+    η               = [0.0],
+    wq_profile      = [:power_exp],
+    s_q             = [1.0],
+    λ_q             = [1.0],
+    Te              = [0.1, 0.5, 1.0],
+    Tb              = [0.2, 0.8],
+    α               = [0.2],
+    A               = [0.5],
 )
 
 # ── Build parameter sets ───────────────────────────────────────────────────────

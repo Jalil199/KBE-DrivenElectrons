@@ -45,8 +45,8 @@ function make_bath_dispersion(dispersion_type::Symbol; qs, ωb0::Float64, v_b::F
     return [ωbath_value(q; dispersion_type, ωb0, v_b) for q in qs]
 end
 
-function make_bath_coupling2(; qs, g_b::Float64)
-    return fill(g_b^2, length(qs))
+function make_bath_coupling2(; wq, α::Float64)
+    return α .* wq
 end
 
 # ── Model struct ───────────────────────────────────────────────────────────────
@@ -81,9 +81,12 @@ Base.@kwdef struct ModelElectronBath
     # Bath implementation choice
     bath_type::Symbol      = :dispersion
     dispersion_type::Symbol = :sin_lattice
+    boson_kernel::Symbol = :delta
+    η::Float64 = 0.0
+    ωA_max::Float64 = 20.0
+    dωA::Float64 = 0.01
     ωb0::Float64 = 0.1
     v_b::Float64 = 0.2
-    g_b::Float64 = 0.85
 
     # Brillouin-zone grid
     Δk::Float64         = 2*pi/L
@@ -96,7 +99,7 @@ Base.@kwdef struct ModelElectronBath
     wq::Vector{Float64}  = make_momentum_weights(wq_profile; ks, s_q, λ_q)
     bath_qs::Vector{Float64} = copy(ks)
     ωq::Vector{Float64}  = make_bath_dispersion(dispersion_type; qs=bath_qs, ωb0, v_b)
-    g2q::Vector{Float64} = make_bath_coupling2(; qs=bath_qs, g_b)
+    g2q::Vector{Float64} = make_bath_coupling2(; wq, α)
     nBq::Vector{Float64} = bose.(ωq; model=(; Tb))
     kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
 end
@@ -189,6 +192,8 @@ function validate_bath_config(model::ModelElectronBath)
     L = model.L
     @assert model.bath_type in (:spectral_density, :dispersion) "bath_type must be :spectral_density or :dispersion"
     @assert model.dispersion_type in (:linear, :sin_lattice) "dispersion_type must be :linear or :sin_lattice"
+    @assert model.boson_kernel in (:delta, :spectral) "boson_kernel must be :delta or :spectral"
+    @assert model.η ≥ 0 "η must be nonnegative"
     @assert length(model.ks) == L "ks must have length L"
     @assert length(model.wq) == L "wq must have length L"
     @assert isapprox(sum(model.wq), 1.0; atol=1e-12) "wq must satisfy sum(wq) = 1"
@@ -220,6 +225,23 @@ function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; greater::Bool)
     return Ξq_tt
 end
 
+function boson_spectral_A(ω, ω0, η)
+    return 2η / ((ω - ω0)^2 + η^2) - 2η / ((ω + ω0)^2 + η^2)
+end
+
+function fill_dispersion_kernel_q_spectral!(Ξq_tt, τ, ωgrid, dω, ωq, g2q; model, greater::Bool)
+    @inbounds for q in eachindex(Ξq_tt)
+        acc = zero(eltype(Ξq_tt))
+        for ω in ωgrid
+            Aω = boson_spectral_A(ω, ωq[q], model.η)
+            occ = greater ? (bose(ω; model) + 1) : bose(ω; model)
+            acc += (-1im) * occ * Aω * exp(-1im * ω * τ)
+        end
+        Ξq_tt[q] = g2q[q] * acc * dω / (2pi)
+    end
+    return Ξq_tt
+end
+
 function apply_momentum_convolution!(Σtt, Ξq_tt, Gtt, kmq_idx)
     fill!(Σtt, 0)
     nd = ndims(Σtt)
@@ -238,8 +260,8 @@ end
 function SelfEnergyUpdate!(model::ModelElectronBath, data::DataElectronBath,
                             times::Vector{Float64}, _, _, t::Int, t′::Int)
     (; GL, GG, ΣL_F, ΣG_F, workspace) = data
-    (; bath_type, wq, kmq_idx, ωq, g2q, nBq) = model
-    (; tmpΞL, tmpΞG, tmpΣL, tmpΣG) = workspace
+    (; bath_type, boson_kernel, wq, kmq_idx, ωq, g2q, nBq) = model
+    (; tmpΞL, tmpΞG, tmpΣL, tmpΣG, ωgrid_b) = workspace
 
     if (n = size(GL, 4)) > size(ΣL_F, 4)
         resize!(ΣL_F, n)
@@ -261,8 +283,15 @@ function SelfEnergyUpdate!(model::ModelElectronBath, data::DataElectronBath,
             tmpΞG[q] = wq[q] * ΞG_ref
         end
     elseif bath_type == :dispersion
-        fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; greater=false)
-        fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; greater=true)
+        if boson_kernel == :delta
+            fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; greater=false)
+            fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; greater=true)
+        elseif boson_kernel == :spectral
+            fill_dispersion_kernel_q_spectral!(tmpΞL, τ, ωgrid_b, model.dωA, ωq, g2q; model, greater=false)
+            fill_dispersion_kernel_q_spectral!(tmpΞG, τ, ωgrid_b, model.dωA, ωq, g2q; model, greater=true)
+        else
+            throw(ArgumentError("Unknown boson_kernel: $(boson_kernel). Use :delta or :spectral."))
+        end
     else
         throw(ArgumentError("Unknown bath_type: $(bath_type)"))
     end
@@ -342,8 +371,8 @@ function make_name(model::ModelElectronBath; tmax)
     "L$(model.L)_t1$(model.t1)_t2$(model.t2)_Δ$(model.Δ)" *
     "_Te$(model.Te)_Tb$(model.Tb)" *
     "_$(model.bath_type)_α$(model.α)_s$(model.s)_ωc$(model.ωc)" *
-    "_$(model.dispersion_type)_g_b$(model.g_b)_v_b$(model.v_b)_ωb0$(model.ωb0)" *
-    "_$(model.wq_profile)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)" *
+    "_$(model.dispersion_type)_$(model.boson_kernel)_η$(model.η)_v_b$(model.v_b)_ωb0$(model.ωb0)" *
+    "_$(model.wq_profile)_s_q$(model.s_q)_λ_q$(model.λ_q)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)" *
     "_ti$(model.ti)_to$(model.to)_tmax$(tmax)"
 end
 
@@ -373,6 +402,7 @@ function main(; tmax=40, kwargs...)
         tmpΞG = zeros(ComplexF64, L),
         tmpΣL = zeros(ComplexF64, norb1, norb2, L),
         tmpΣG = zeros(ComplexF64, norb1, norb2, L),
+        ωgrid_b = collect(-model.ωA_max:model.dωA:model.ωA_max),
     )
     validate_workspace!(workspace, GL[1,1], model)
 
