@@ -51,6 +51,7 @@ Base.@kwdef struct ModelElectronBath{Hk}
     ω0::Float64 = Float64(pi)
     σ::Float64 = 2.0
     A::Float64 = 0.1
+    switch_on::Bool = false
     ti::Float64 = 3.0
     to::Float64 = 20.0
     bath_type::Symbol = :spectral_density
@@ -165,6 +166,11 @@ function stepp(t; model)
     1/(1+exp(-(t-to)/ti))
 end
 
+@inline function interaction_switch(t, t′; model, apply_switch::Union{Nothing,Bool}=nothing)
+    use_switch = isnothing(apply_switch) ? model.switch_on : apply_switch
+    return use_switch ? stepp(t; model) * stepp(t′; model) : 1.0
+end
+
 function homogeneous_momentum_sum(Gtt)
     sumG = similar(Gtt)
     sumG .= sum(Gtt)
@@ -172,12 +178,13 @@ function homogeneous_momentum_sum(Gtt)
 end
 
 
-function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; greater::Bool)
+function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; η::Real=0.0, greater::Bool)
+    damp = exp(-η * abs(τ))
     @inbounds for q in eachindex(Ξq_tt)
         nq = nBq[q]
         pref = greater ? (nq + 1) : nq
         pref_tr = greater ? nq : (nq + 1)
-        Ξq_tt[q] = -1im * g2q[q] * (pref * exp(-1im * ωq[q] * τ) + pref_tr * exp(1im * ωq[q] * τ))
+        Ξq_tt[q] = -1im * g2q[q] * damp * (pref * exp(-1im * ωq[q] * τ) + pref_tr * exp(1im * ωq[q] * τ))
     end
     return Ξq_tt
 end
@@ -190,6 +197,7 @@ function fill_dispersion_kernel_q_spectral!(Ξq_tt, τ, ωgrid, dω, ωq, g2q; m
     @inbounds for q in eachindex(Ξq_tt)
         acc = zero(eltype(Ξq_tt))
         for ω in ωgrid
+            iszero(ω) && continue
             Aω = boson_spectral_A(ω, ωq[q], model.η)
             occ = greater ? (bose(ω; model) + 1) : bose(ω; model)
             acc += (-1im) * occ * Aω * exp(-1im * ω * τ)
@@ -244,23 +252,30 @@ function verify_kbe_slice_persistence(; L::Int=4)
 end
 
 
-function Xi_k_at_time(t; model, t′::Real=0.0, greater::Bool=false, apply_switch::Bool=true)
+function Xi_k_at_time(t; model, t′::Real=0.0, greater::Bool=false, apply_switch::Union{Nothing,Bool}=nothing)
     τ = t - t′
-    switch = apply_switch ? stepp(t; model) * stepp(t′; model) : 1.0
+    switch = interaction_switch(t, t′; model, apply_switch)
 
     if model.bath_type == :spectral_density
         ξτ = greater ? Ξg(τ; model) : Ξl(τ; model)
         return ξτ .* switch
     elseif model.bath_type == :dispersion
         ξk = similar(model.ks, ComplexF64)
-        fill_dispersion_kernel_q!(ξk, τ, model.ωq, model.g2q, model.nBq; greater=greater)
+        if model.boson_kernel == :delta
+            fill_dispersion_kernel_q!(ξk, τ, model.ωq, model.g2q, model.nBq; η=model.η, greater=greater)
+        elseif model.boson_kernel == :spectral
+            ωgrid_b = collect(-model.ωA_max:model.dωA:model.ωA_max)
+            fill_dispersion_kernel_q_spectral!(ξk, τ, ωgrid_b, model.dωA, model.ωq, model.g2q; model, greater=greater)
+        else
+            throw(ArgumentError("Unknown boson_kernel: $(model.boson_kernel). Use :delta or :spectral."))
+        end
         return ξk .* switch
     else
         throw(ArgumentError("Unknown bath_type: $(model.bath_type). Use :spectral_density or :dispersion."))
     end
 end
 
-function plot_Xi_vs_k(times; model=ModelElectronBath(), t_ref::Real=0.0, greater::Bool=false, component::Symbol=:real, apply_switch::Bool=true)
+function plot_Xi_vs_k(times; model=ModelElectronBath(), t_ref::Real=0.0, greater::Bool=false, component::Symbol=:real, apply_switch::Union{Nothing,Bool}=nothing)
     @assert component in (:real, :imag, :abs) "component must be :real, :imag, or :abs"
 
     plt = nothing
@@ -291,7 +306,7 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
         resize!(ΣG_F, n)
     end
 
-    switch = stepp(times[t]; model) * stepp(times[t′]; model)
+    switch = interaction_switch(times[t], times[t′]; model)
     τ = times[t] - times[t′]
 
     ΞL_tt = kbe_storage_tt(ΞL, t, t′)
@@ -316,8 +331,8 @@ function SelfEnergyUpdate!(model, data, times, _, _, t, t′)
         fill!(tmpΞG, ΞG_ref)
     elseif bath_type == :dispersion
         if boson_kernel == :delta
-            fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; greater=false)
-            fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; greater=true)
+            fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; η=model.η, greater=false)
+            fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; η=model.η, greater=true)
         elseif boson_kernel == :spectral
             fill_dispersion_kernel_q_spectral!(tmpΞL, τ, ωgrid_b, model.dωA, ωq, g2q; model, greater=false)
             fill_dispersion_kernel_q_spectral!(tmpΞG, τ, ωgrid_b, model.dωA, ωq, g2q; model, greater=true)
@@ -397,11 +412,22 @@ function make_name(model; tmax)
     "L$(model.L)_Te$(model.Te)_Tb$(model.Tb)_u$(model.u)_γ$(model.γ)" *
     "_$(model.bath_type)_α$(model.α)_s$(model.s)_ωc$(model.ωc)" *
     "_$(model.dispersion_type)_$(model.boson_kernel)_η$(model.η)_v_b$(model.v_b)_ωb0$(model.ωb0)" *
-    "_$(model.wq_profile)_s_q$(model.s_q)_λ_q$(model.λ_q)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)" *
+    "_$(model.wq_profile)_s_q$(model.s_q)_λ_q$(model.λ_q)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)_switch$(Int(model.switch_on))" *
     "_ti$(model.ti)_to$(model.to)_tmax$(tmax)"
 end
 
-function main(; tmax=10, kwargs...)
+function extract_occupations(GL)
+    L = size(GL.data, 1)
+    Nt = size(GL.data, 2)
+    nk_t = zeros(Float64, L, Nt)
+    @inbounds for it in 1:Nt
+        nk_t[:, it] .= imag.(kbe_storage_tt(GL, it, it))
+    end
+    nbar_t = vec(sum(nk_t; dims=1) ./ L)
+    return nk_t, nbar_t
+end
+
+function main(; tmax=10, save_mode::Symbol=:full, kwargs...)
     #### Read kwargs
 
     println(kwargs...)
@@ -463,7 +489,10 @@ function main(; tmax=10, kwargs...)
         tmpΣG  = similar(model.ks, ComplexF64),
         itp_ΞL = itp_ΞL,
         itp_ΞG = itp_ΞG,
-        ωgrid_b = collect(-model.ωA_max:model.dωA:model.ωA_max),
+        ωgrid_b = vcat(
+            collect(-model.ωA_max:model.dωA:-model.dωA),
+            collect(model.dωA:model.dωA:model.ωA_max),
+        ),
     )
 
     #### Initial conditions lesser and greater Green's functions
@@ -473,9 +502,27 @@ function main(; tmax=10, kwargs...)
     GG_11 = kbe_storage_tt(GG, 1, 1)
     copyto!(GL_11, 1im .* fermi.(ϵ_k(ks; u, γ); model=(; Te)))
     copyto!(GG_11, GL_11 .- 1im)
-    # Σ(0,0) = 0 because the adiabatic switch stepp(0) ≈ 0 kills the bath at t=0.
-    fill!(workspace.tmpΞL, zero(ComplexF64))
-    fill!(workspace.tmpΞG, zero(ComplexF64))
+    switch_00 = interaction_switch(0.0, 0.0; model)
+    if model.bath_type == :spectral_density
+        ΞL_00 = Ξl(0.0; model) * switch_00
+        ΞG_00 = Ξg(0.0; model) * switch_00
+        fill!(workspace.tmpΞL, ΞL_00)
+        fill!(workspace.tmpΞG, ΞG_00)
+    elseif model.bath_type == :dispersion
+        if model.boson_kernel == :delta
+            fill_dispersion_kernel_q!(workspace.tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; η=model.η, greater=false)
+            fill_dispersion_kernel_q!(workspace.tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; η=model.η, greater=true)
+        elseif model.boson_kernel == :spectral
+            fill_dispersion_kernel_q_spectral!(workspace.tmpΞL, 0.0, workspace.ωgrid_b, model.dωA, model.ωq, model.g2q; model, greater=false)
+            fill_dispersion_kernel_q_spectral!(workspace.tmpΞG, 0.0, workspace.ωgrid_b, model.dωA, model.ωq, model.g2q; model, greater=true)
+        else
+            throw(ArgumentError("Unknown boson_kernel: $(model.boson_kernel). Use :delta or :spectral."))
+        end
+        workspace.tmpΞL .*= switch_00
+        workspace.tmpΞG .*= switch_00
+    else
+        throw(ArgumentError("Unknown bath_type: $(model.bath_type). Use :spectral_density or :dispersion."))
+    end
     apply_momentum_convolution!(kbe_storage_tt(ΣL_F, 1, 1), workspace.tmpΞL, kbe_storage_tt(GL, 1, 1), model.kmq_idx)
     apply_momentum_convolution!(kbe_storage_tt(ΣG_F, 1, 1), workspace.tmpΞG, kbe_storage_tt(GG, 1, 1), model.kmq_idx)
 
@@ -493,15 +540,29 @@ function main(; tmax=10, kwargs...)
         stop = x -> (println("t: $(x[end])"); flush(stdout); false)
     )
    
+    @assert save_mode in (:full, :occupations_only) "save_mode must be :full or :occupations_only"
+
     file = "Data"
     mkpath(file)
     name_p = make_name(model; tmax)
-    
-    @save "$(file)/GL_$(name_p).jld2" GL
-    @save "$(file)/GG_$(name_p).jld2" GG
-    @save "$(file)/ts_$(name_p).jld2" sol
 
-    println("Saved all results.")
+    if save_mode == :full
+        @save "$(file)/GL_$(name_p).jld2" GL
+        @save "$(file)/GG_$(name_p).jld2" GG
+        @save "$(file)/ts_$(name_p).jld2" sol
+        println("Saved full Green-function results.")
+    else
+        nk_t, nbar_t = extract_occupations(GL)
+        ks = collect(model.ks)
+        params = (; save_mode, tmax, model.L, model.Te, model.Tb, model.u, model.γ, model.α,
+            model.s, model.ωc, model.t0, model.ω0, model.σ, model.A, model.switch_on,
+            model.ti, model.to, model.bath_type, model.dispersion_type, model.boson_kernel,
+            model.η, model.ωA_max, model.dωA, model.ωb0, model.v_b, model.wq_profile,
+            model.s_q, model.λ_q)
+        @save "$(file)/occ_$(name_p).jld2" nk_t nbar_t ks params
+        @save "$(file)/ts_$(name_p).jld2" sol
+        println("Saved occupations-only results.")
+    end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

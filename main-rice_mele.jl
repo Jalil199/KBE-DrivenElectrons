@@ -73,6 +73,7 @@ Base.@kwdef struct ModelElectronBath
     ω0::Float64 = 2.2
     σ::Float64  = 2.0
     A::Float64  = 0.5
+    switch_on::Bool = false
 
     # Smooth switch-on window
     ti::Float64 = 0.5
@@ -128,7 +129,11 @@ end
 function bose(ϵ::Float64; model)
     (; Tb) = model
     β = 1/Tb
-    return 1/(exp(β*ϵ)-1)
+    if abs(ϵ) < 1e-5
+        return 0.0
+    else
+        return 1/(exp(β*ϵ)-1)
+    end
 end
 
 function H_k(k::Float64; t1::Float64, t2::Float64, Δ::Float64)
@@ -183,7 +188,11 @@ end
 
 function stepp(t; model)
     (; ti, to) = model
-    1.0 #/(1+exp(-(t-to)/ti))
+    1 / (1 + exp(-(t - to) / ti))
+end
+
+@inline function interaction_switch(t, t′; model)
+    return model.switch_on ? stepp(t; model) * stepp(t′; model) : 1.0
 end
 
 # ── Validation ─────────────────────────────────────────────────────────────────
@@ -215,12 +224,13 @@ end
 
 @inline kbe_storage_tt_rm(gf, t, t′) = @view gf.data[:, :, :, t, t′]
 
-function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; greater::Bool)
+function fill_dispersion_kernel_q!(Ξq_tt, τ, ωq, g2q, nBq; η::Real=0.0, greater::Bool)
+    damp = exp(-η * abs(τ))
     @inbounds for q in eachindex(Ξq_tt)
         nq = nBq[q]
         pref    = greater ? (nq + 1) : nq
         pref_tr = greater ? nq : (nq + 1)
-        Ξq_tt[q] = -1im * g2q[q] * (pref * exp(-1im*ωq[q]*τ) + pref_tr * exp(1im*ωq[q]*τ))
+        Ξq_tt[q] = -1im * g2q[q] * damp * (pref * exp(-1im*ωq[q]*τ) + pref_tr * exp(1im*ωq[q]*τ))
     end
     return Ξq_tt
 end
@@ -233,6 +243,7 @@ function fill_dispersion_kernel_q_spectral!(Ξq_tt, τ, ωgrid, dω, ωq, g2q; m
     @inbounds for q in eachindex(Ξq_tt)
         acc = zero(eltype(Ξq_tt))
         for ω in ωgrid
+            iszero(ω) && continue
             Aω = boson_spectral_A(ω, ωq[q], model.η)
             occ = greater ? (bose(ω; model) + 1) : bose(ω; model)
             acc += (-1im) * occ * Aω * exp(-1im * ω * τ)
@@ -269,6 +280,7 @@ function SelfEnergyUpdate!(model::ModelElectronBath, data::DataElectronBath,
     end
 
     τ = times[t] - times[t′]
+    switch = interaction_switch(times[t], times[t′]; model)
 
     GL_tt = kbe_storage_tt_rm(GL, t, t′)
     GG_tt = kbe_storage_tt_rm(GG, t, t′)
@@ -279,19 +291,21 @@ function SelfEnergyUpdate!(model::ModelElectronBath, data::DataElectronBath,
         ΞL_ref = Ξl(τ; model)
         ΞG_ref = Ξg(τ; model)
         @inbounds for q in eachindex(wq)
-            tmpΞL[q] = wq[q] * ΞL_ref
-            tmpΞG[q] = wq[q] * ΞG_ref
+            tmpΞL[q] = wq[q] * ΞL_ref * switch
+            tmpΞG[q] = wq[q] * ΞG_ref * switch
         end
     elseif bath_type == :dispersion
         if boson_kernel == :delta
-            fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; greater=false)
-            fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; greater=true)
+            fill_dispersion_kernel_q!(tmpΞL, τ, ωq, g2q, nBq; η=model.η, greater=false)
+            fill_dispersion_kernel_q!(tmpΞG, τ, ωq, g2q, nBq; η=model.η, greater=true)
         elseif boson_kernel == :spectral
             fill_dispersion_kernel_q_spectral!(tmpΞL, τ, ωgrid_b, model.dωA, ωq, g2q; model, greater=false)
             fill_dispersion_kernel_q_spectral!(tmpΞG, τ, ωgrid_b, model.dωA, ωq, g2q; model, greater=true)
         else
             throw(ArgumentError("Unknown boson_kernel: $(boson_kernel). Use :delta or :spectral."))
         end
+        tmpΞL .*= switch
+        tmpΞG .*= switch
     else
         throw(ArgumentError("Unknown bath_type: $(bath_type)"))
     end
@@ -372,7 +386,7 @@ function make_name(model::ModelElectronBath; tmax)
     "_Te$(model.Te)_Tb$(model.Tb)" *
     "_$(model.bath_type)_α$(model.α)_s$(model.s)_ωc$(model.ωc)" *
     "_$(model.dispersion_type)_$(model.boson_kernel)_η$(model.η)_v_b$(model.v_b)_ωb0$(model.ωb0)" *
-    "_$(model.wq_profile)_s_q$(model.s_q)_λ_q$(model.λ_q)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)" *
+    "_$(model.wq_profile)_s_q$(model.s_q)_λ_q$(model.λ_q)_t0$(model.t0)_ω0$(model.ω0)_σ$(model.σ)_A$(model.A)_switch$(Int(model.switch_on))" *
     "_ti$(model.ti)_to$(model.to)_tmax$(tmax)"
 end
 
@@ -402,7 +416,10 @@ function main(; tmax=40, kwargs...)
         tmpΞG = zeros(ComplexF64, L),
         tmpΣL = zeros(ComplexF64, norb1, norb2, L),
         tmpΣG = zeros(ComplexF64, norb1, norb2, L),
-        ωgrid_b = collect(-model.ωA_max:model.dωA:model.ωA_max),
+        ωgrid_b = vcat(
+            collect(-model.ωA_max:model.dωA:-model.dωA),
+            collect(model.dωA:model.dωA:model.ωA_max),
+        ),
     )
     validate_workspace!(workspace, GL[1,1], model)
 
@@ -413,17 +430,24 @@ function main(; tmax=40, kwargs...)
         @views GG.data[:, :, ik, 1, 1] .= -1im*I2 .+ GL.data[:, :, ik, 1, 1]
     end
 
-    # Σ(0,0) = 0 (adiabatic switch off at t=0)
+    switch_00 = interaction_switch(0.0, 0.0; model)
     if model.bath_type == :spectral_density
+        ΞL_00 = Ξl(0.0; model) * switch_00
+        ΞG_00 = Ξg(0.0; model) * switch_00
         @inbounds for q in eachindex(model.wq)
-            workspace.tmpΞL[q] = 0.0
-            workspace.tmpΞG[q] = 0.0
+            workspace.tmpΞL[q] = model.wq[q] * ΞL_00
+            workspace.tmpΞG[q] = model.wq[q] * ΞG_00
         end
     else
-        fill_dispersion_kernel_q!(workspace.tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; greater=false)
-        fill_dispersion_kernel_q!(workspace.tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; greater=true)
-        workspace.tmpΞL .*= 0.0
-        workspace.tmpΞG .*= 0.0
+        if model.boson_kernel == :delta
+            fill_dispersion_kernel_q!(workspace.tmpΞL, 0.0, model.ωq, model.g2q, model.nBq; η=model.η, greater=false)
+            fill_dispersion_kernel_q!(workspace.tmpΞG, 0.0, model.ωq, model.g2q, model.nBq; η=model.η, greater=true)
+        else
+            fill_dispersion_kernel_q_spectral!(workspace.tmpΞL, 0.0, workspace.ωgrid_b, model.dωA, model.ωq, model.g2q; model, greater=false)
+            fill_dispersion_kernel_q_spectral!(workspace.tmpΞG, 0.0, workspace.ωgrid_b, model.dωA, model.ωq, model.g2q; model, greater=true)
+        end
+        workspace.tmpΞL .*= switch_00
+        workspace.tmpΞG .*= switch_00
     end
     apply_momentum_convolution!(workspace.tmpΣL, workspace.tmpΞL, GL[1,1], model.kmq_idx)
     apply_momentum_convolution!(workspace.tmpΣG, workspace.tmpΞG, GG[1,1], model.kmq_idx)
