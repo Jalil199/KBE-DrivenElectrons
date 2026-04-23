@@ -1,7 +1,7 @@
 using Distributed
 
-n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "4"))
-addprocs(n_workers)
+n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "8"))
+addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
 @everywhere include("./main-rice_mele.jl")
@@ -11,25 +11,50 @@ println("Workers: ", workers())
 # Single-element vectors keep that parameter fixed.
 # All combinations (Cartesian product) are run in parallel.
 
-tmax  = 40
-force = false   # set true to rerun even if output files already exist
+tmax  = 60
+force = true   # set true to rerun even if output files already exist
 
 sweep = (
+    # Rice-Mele lattice parameters
     L               = [80],
-    bath_type       = [:dispersion],
-    dispersion_type = [:sin_lattice],
-    boson_kernel    = [:delta],
-    η               = [0.0],
-    wq_profile      = [:power_exp],
-    s_q             = [1.0],
-    λ_q             = [1.0],
-    Te              = [0.2, 0.5, 1.0],
-    Tb              = [0.4, 0.8],
-    α               = [0.3],
     t1              = [-1.0],
-    t2              = [-0.6],
+    t2              = [-0.8],
     Δ               = [2.0],
-    A               = [0.5],
+
+    # Temperatures: choose Te > Tb to study thermalization into a colder bath
+    Te              = [1.0],
+    Tb              = [0.1],
+
+    # Bath spectral-weight parameters
+    α               = [0.25,1.0],
+    s               = [1.0],
+    ωc              = [3.0],
+
+    # Drive parameters: set A = 0.0 to study thermalization without light
+    t0              = [20.0],
+    ω0              = [2.2],
+    σ               = [2.0],
+    A               = [0.0],
+    switch_on       = [false],
+
+    # Smooth switch-on parameters
+    ti              = [0.5],
+    to              = [5.0],
+
+    # Bath implementation
+    bath_type       = [:dispersion],   # other option: :spectral_density
+    dispersion_type = [:linear],  # other option: :linear
+    boson_kernel    = [:spectral],        # other option: :spectral
+    η               = [0.05,0.5],
+    ωA_max          = [20.0],
+    dωA             = [0.01],
+    ωb0             = [0.1],
+    v_b             = [0.2],
+
+    # Momentum-weight profile
+    wq_profile      = [:power_exp],      # other option: :power_exp
+    s_q             = [1.0],
+    λ_q             = [0.2,0.5,1.0],
 )
 
 # ── Build parameter sets ───────────────────────────────────────────────────────

@@ -18,7 +18,7 @@ const σ_z = [1.0 0.0; 0.0 -1.0]
 
 # ── Bath helper functions ──────────────────────────────────────────────────────
 
-function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
+function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64, η::Float64)
     if profile == :uniform
         wq_raw = ones(Float64, length(ks))
     elseif profile == :power_exp
@@ -26,9 +26,13 @@ function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
     else
         throw(ArgumentError("Unknown momentum weight profile: $profile"))
     end
-    wq_sum = sum(wq_raw)
-    wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
-    return wq_raw ./ wq_sum
+    # Previous normalization:
+    # wq_sum = sum(wq_raw)
+    # wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
+    # return wq_raw ./ wq_sum
+    λ_q > 0 || throw(ArgumentError("Momentum cutoff λ_q must be positive"))
+    η ≥ 0 || throw(ArgumentError("Time cutoff η must be nonnegative"))
+    return (η / λ_q) .* wq_raw
 end
 
 function ωbath_value(q::Real; dispersion_type::Symbol, ωb0::Float64, v_b::Float64)
@@ -97,12 +101,14 @@ Base.@kwdef struct ModelElectronBath
     wq_profile::Symbol   = :uniform
     s_q::Float64         = 0.2
     λ_q::Float64         = 0.5
-    wq::Vector{Float64}  = make_momentum_weights(wq_profile; ks, s_q, λ_q)
+    wq::Vector{Float64}  = make_momentum_weights(wq_profile; ks, s_q, λ_q, η)
     bath_qs::Vector{Float64} = copy(ks)
     ωq::Vector{Float64}  = make_bath_dispersion(dispersion_type; qs=bath_qs, ωb0, v_b)
     g2q::Vector{Float64} = make_bath_coupling2(; wq, α)
     nBq::Vector{Float64} = bose.(ωq; model=(; Tb))
-    kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
+    # The k-grid is stored on [-π, π), so index arithmetic must include the
+    # half-Brillouin-zone offset when mapping k-q back onto the same grid.
+    kmq_idx::Matrix{Int} = [mod1(k - q + L ÷ 2 + 1, L) for k in 1:L, q in 1:L]
 end
 
 Base.@kwdef struct DataElectronBath{T1,T2}
@@ -137,8 +143,9 @@ function bose(ϵ::Float64; model)
 end
 
 function H_k(k::Float64; t1::Float64, t2::Float64, Δ::Float64)
-    dx = t1 + t2*cos(k + pi)
-    dy = t2*sin(k + pi)
+    ### The pi factor makes the bands looks more like semiconductor phsyics
+    dx = t1 + t2*cos(k) # pi
+    dy = t2*sin(k) # pi
     dz = Δ/2
     return σ_x*dx + σ_y*dy + σ_z*dz
 end
@@ -203,9 +210,11 @@ function validate_bath_config(model::ModelElectronBath)
     @assert model.dispersion_type in (:linear, :sin_lattice) "dispersion_type must be :linear or :sin_lattice"
     @assert model.boson_kernel in (:delta, :spectral) "boson_kernel must be :delta or :spectral"
     @assert model.η ≥ 0 "η must be nonnegative"
+    @assert model.λ_q > 0 "λ_q must be positive"
     @assert length(model.ks) == L "ks must have length L"
     @assert length(model.wq) == L "wq must have length L"
-    @assert isapprox(sum(model.wq), 1.0; atol=1e-12) "wq must satisfy sum(wq) = 1"
+    # Previous normalization check:
+    # @assert isapprox(sum(model.wq), 1.0; atol=1e-12) "wq must satisfy sum(wq) = 1"
     @assert length(model.ωq) == L "ωq must have length L"
     @assert length(model.g2q) == L "g2q must have length L"
     @assert length(model.nBq) == L "nBq must have length L"

@@ -5,7 +5,7 @@ using Tullio
 using JLD2
 using PyPlot
 
-function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
+function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64, η::Float64)
     if profile == :uniform
         wq_raw = ones(Float64, length(ks))
     elseif profile == :power_exp
@@ -14,9 +14,13 @@ function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64)
         throw(ArgumentError("Unknown momentum weight profile: $profile"))
     end
 
-    wq_sum = sum(wq_raw)
-    wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
-    return wq_raw ./ wq_sum
+    # Previous normalization:
+    # wq_sum = sum(wq_raw)
+    # wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
+    # return (η / λ_q) .* (wq_raw ./ wq_sum)
+    λ_q > 0 || throw(ArgumentError("Momentum cutoff λ_q must be positive"))
+    η ≥ 0 || throw(ArgumentError("Time cutoff η must be nonnegative"))
+    return (η / λ_q) .* wq_raw
 end
 
 
@@ -67,12 +71,14 @@ Base.@kwdef struct ModelElectronBath{Hk}
     wq_profile::Symbol = :uniform
     s_q::Float64 = 0.0
     λ_q::Float64 = 1.0
-    wq::Vector{Float64} = make_momentum_weights(wq_profile; ks, s_q, λ_q)
+    wq::Vector{Float64} = make_momentum_weights(wq_profile; ks, s_q, λ_q, η)
     bath_qs::Vector{Float64} = copy(ks)
     ωq::Vector{Float64} = make_bath_dispersion(dispersion_type; qs=bath_qs, ωb0, v_b)
     g2q::Vector{Float64} = make_bath_coupling2(; wq, α)
     nBq::Vector{Float64} = bose.(ωq; model=(; Tb))
-    kmq_idx::Matrix{Int} = [mod1(k - q, L) for k in 1:L, q in 1:L]
+    # The k-grid is stored on [-π, π), so index arithmetic must include the
+    # half-Brillouin-zone offset when mapping k-q back onto the same grid.
+    kmq_idx::Matrix{Int} = [mod1(k - q + L ÷ 2 + 1, L) for k in 1:L, q in 1:L]
     hk::Hk = t -> ϵ_k(ks .- pulse_Gaussian_sin(t; t0, ω0, σ, A);  u, γ)
 end
 
@@ -440,8 +446,10 @@ function main(; tmax=10, save_mode::Symbol=:full, kwargs...)
     @assert model.dispersion_type in (:linear, :sin_lattice) "dispersion_type must be :linear or :sin_lattice"
     @assert model.boson_kernel in (:delta, :spectral) "boson_kernel must be :delta or :spectral"
     @assert model.η ≥ 0 "η must be nonnegative"
+    @assert model.λ_q > 0 "λ_q must be positive"
     @assert length(model.wq) == L "wq must have length L"
-    @assert isapprox(sum(model.wq), 1.0; atol=1e-12) "wq must satisfy sum(wq) = 1"
+    # Previous normalization check:
+    # @assert isapprox(sum(model.wq), model.η / model.λ_q; atol=1e-12) "wq must satisfy sum(wq) = η / λ_q"
     @assert length(model.ωq) == L "ωq must have length L"
     @assert length(model.g2q) == L "g2q must have length L"
     u = model.u
