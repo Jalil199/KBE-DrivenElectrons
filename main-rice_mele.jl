@@ -30,9 +30,11 @@ function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64,
     # wq_sum = sum(wq_raw)
     # wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
     # return wq_raw ./ wq_sum
+    # Previous amplitude prefactor:
+    # return (η / λ_q) .* wq_raw
     λ_q > 0 || throw(ArgumentError("Momentum cutoff λ_q must be positive"))
     η ≥ 0 || throw(ArgumentError("Time cutoff η must be nonnegative"))
-    return (η / λ_q) .* wq_raw
+    return wq_raw
 end
 
 function ωbath_value(q::Real; dispersion_type::Symbol, ωb0::Float64, v_b::Float64)
@@ -144,8 +146,8 @@ end
 
 function H_k(k::Float64; t1::Float64, t2::Float64, Δ::Float64)
     ### The pi factor makes the bands looks more like semiconductor phsyics
-    dx = t1 + t2*cos(k) # pi
-    dy = t2*sin(k) # pi
+    dx = t1 + t2*cos(k + pi) # pi
+    dy = t2*sin(k + pi) # pi
     dz = Δ/2
     return σ_x*dx + σ_y*dy + σ_z*dz
 end

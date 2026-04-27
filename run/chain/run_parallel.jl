@@ -28,7 +28,7 @@ sweep = (
     γ               = [1.0],
 
     # Bath spectral-weight parameters
-    α               = [0.25,1.0],
+    α               = [1.2,1.4,1.6,1.8,2.0],
     s               = [1.0],
     ωc              = [10.0],
 
@@ -47,7 +47,7 @@ sweep = (
     bath_type       = [:dispersion],  # other option: :spectral_density
     dispersion_type = [:linear],      # other option: :sin_lattice
     boson_kernel    = [:spectral],       # other option: :spectral
-    η               = [0.05,0.5],
+    η               = [0.05, 0.5],
     ωA_max          = [20.0],
     dωA             = [0.01],
     ωb0             = [0.1],

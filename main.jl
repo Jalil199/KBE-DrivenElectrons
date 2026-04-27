@@ -18,9 +18,11 @@ function make_momentum_weights(profile::Symbol; ks, s_q::Float64, λ_q::Float64,
     # wq_sum = sum(wq_raw)
     # wq_sum > 0 || throw(ArgumentError("Momentum weights must sum to a positive value before normalization"))
     # return (η / λ_q) .* (wq_raw ./ wq_sum)
+    # Previous amplitude prefactor:
+    # return (η / λ_q) .* wq_raw
     λ_q > 0 || throw(ArgumentError("Momentum cutoff λ_q must be positive"))
     η ≥ 0 || throw(ArgumentError("Time cutoff η must be nonnegative"))
-    return (η / λ_q) .* wq_raw
+    return wq_raw
 end
 
 

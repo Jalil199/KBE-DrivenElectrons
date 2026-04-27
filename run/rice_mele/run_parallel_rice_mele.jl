@@ -23,10 +23,10 @@ sweep = (
 
     # Temperatures: choose Te > Tb to study thermalization into a colder bath
     Te              = [1.0],
-    Tb              = [0.1],
+    Tb              = [0.5],
 
     # Bath spectral-weight parameters
-    α               = [0.25,1.0],
+    α               = [0.2,0.4,0.6,0.8,1.0],
     s               = [1.0],
     ωc              = [3.0],
 
