@@ -25,3 +25,9 @@
 
 out_*.txt
 distribution_animation.gif
+
+# Added 2026-09-28: caches, handoff bundles and derived plots
+/HANDOFF_RICE/
+/analysis_cache/
+/distributions_chain/
+.codex
