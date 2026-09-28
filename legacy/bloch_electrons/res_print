@@ -1,0 +1,832 @@
+Available workers: [2, 3, 4, 5]
+number threads used in operations is : 1
+      From worker 5:	The program started
+      From worker 4:	The program started
+      From worker 2:	The program started
+      From worker 3:	The program started
+      From worker 4:	Running task for (i1) = (1) on worker: 4
+      From worker 5:	Running task for (i1) = (1) on worker: 5
+      From worker 3:	Running task for (i1) = (1) on worker: 3
+      From worker 2:	Running task for (i1) = (1) on worker: 2
+      From worker 5:	:L => 10
+      From worker 4:	:L => 10
+      From worker 5:	t: 0.0
+      From worker 3:	:L => 10
+      From worker 4:	Running task for (i1) = (4) on worker: 4
+      From worker 4:	:L => 40
+      From worker 4:	t: 0.0
+      From worker 4:	t: 0.0
+      From worker 3:	Running task for (i1) = (3) on worker: 3
+      From worker 3:	:L => 30
+      From worker 3:	Running task for (i1) = (3) on worker: 3
+      From worker 3:	:L => 30
+      From worker 3:	t: 0.0
+      From worker 3:	t: 0.0
+      From worker 5:	Running task for (i1) = (4) on worker: 5
+      From worker 5:	:L => 40
+      From worker 5:	Running task for (i1) = (4) on worker: 5
+      From worker 5:	:L => 40
+      From worker 5:	t: 1.0e-6
+      From worker 5:	t: 0.0
+      From worker 4:	t: 1.0e-6
+      From worker 5:	t: 0.0
+      From worker 4:	Running task for (i1) = (3) on worker: 4
+      From worker 4:	:L => 30
+      From worker 4:	t: 1.0e-6
+      From worker 4:	t: 5.999999999999999e-6
+      From worker 4:	t: 0.0
+      From worker 4:	t: 5.999999999999999e-6
+      From worker 4:	t: 3.0999999999999995e-5
+      From worker 5:	t: 5.999999999999999e-6
+      From worker 4:	t: 1.0e-6
+      From worker 5:	t: 1.0e-6
+      From worker 4:	t: 3.0999999999999995e-5
+      From worker 5:	t: 1.0e-6
+      From worker 4:	t: 0.00015599999999999997
+      From worker 5:	t: 3.0999999999999995e-5
+      From worker 4:	t: 5.999999999999999e-6
+      From worker 5:	t: 5.999999999999999e-6
+      From worker 5:	t: 5.999999999999999e-6
+      From worker 4:	t: 0.00015599999999999997
+      From worker 5:	t: 0.00015599999999999997
+      From worker 4:	t: 0.0007809999999999998
+      From worker 5:	t: 3.0999999999999995e-5
+      From worker 4:	t: 3.0999999999999995e-5
+      From worker 5:	t: 3.0999999999999995e-5
+      From worker 5:	t: 0.0007809999999999998
+      From worker 4:	t: 0.0007809999999999998
+      From worker 5:	t: 0.00015599999999999997
+      From worker 4:	t: 0.0013434999999999996
+      From worker 5:	t: 0.00015599999999999997
+      From worker 5:	t: 0.0013434999999999996
+      From worker 5:	t: 0.0007809999999999998
+      From worker 5:	t: 0.0007809999999999998
+      From worker 3:	t: 0.0
+      From worker 3:	t: 1.0e-6
+      From worker 3:	t: 1.0e-6
+      From worker 4:	t: 0.00015599999999999997
+      From worker 5:	t: 0.004155999999999998
+      From worker 3:	t: 1.0e-6
+      From worker 3:	t: 5.999999999999999e-6
+      From worker 4:	t: 0.0013434999999999996
+      From worker 3:	t: 5.999999999999999e-6
+      From worker 3:	t: 5.999999999999999e-6
+      From worker 4:	t: 0.004155999999999998
+      From worker 5:	t: 0.0013434999999999996
+      From worker 3:	t: 3.0999999999999995e-5
+      From worker 3:	t: 3.0999999999999995e-5
+      From worker 4:	t: 0.0007809999999999998
+      From worker 3:	t: 3.0999999999999995e-5
+      From worker 5:	t: 0.0013434999999999996
+      From worker 3:	t: 0.00015599999999999997
+      From worker 4:	t: 0.004155999999999998
+      From worker 3:	t: 0.00015599999999999997
+      From worker 5:	t: 0.01821849999999999
+      From worker 4:	t: 0.01821849999999999
+      From worker 3:	t: 0.00015599999999999997
+      From worker 3:	t: 0.0007809999999999998
+      From worker 4:	t: 0.0013434999999999996
+      From worker 3:	t: 0.0007809999999999998
+      From worker 5:	t: 0.004155999999999998
+      From worker 4:	t: 0.01821849999999999
+      From worker 3:	t: 0.0007809999999999998
+      From worker 2:	:L => 10
+      From worker 5:	t: 0.004155999999999998
+      From worker 3:	t: 0.0013434999999999996
+      From worker 4:	t: 0.030874749999999986
+      From worker 5:	t: 0.030874749999999986
+      From worker 3:	t: 0.0013434999999999996
+      From worker 4:	t: 0.004155999999999998
+      From worker 3:	t: 0.0013434999999999996
+      From worker 5:	t: 0.01821849999999999
+      From worker 4:	t: 0.030874749999999986
+      From worker 3:	t: 0.004155999999999998
+      From worker 5:	t: 0.01821849999999999
+      From worker 4:	t: 0.09415599999999996
+      From worker 3:	t: 0.004155999999999998
+      From worker 5:	t: 0.09415599999999996
+      From worker 3:	t: 0.004155999999999998
+      From worker 4:	t: 0.01821849999999999
+      From worker 3:	t: 0.01821849999999999
+      From worker 5:	t: 0.030874749999999986
+      From worker 4:	t: 0.09415599999999996
+      From worker 3:	t: 0.01821849999999999
+      From worker 5:	t: 0.030874749999999986
+      From worker 4:	t: 0.41056224999999985
+      From worker 3:	t: 0.01821849999999999
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	t: 0.030874749999999986
+      From worker 3:	t: 0.030874749999999986
+      From worker 5:	t: 0.09415599999999996
+      From worker 4:	t: 0.41056224999999985
+      From worker 3:	t: 0.030874749999999986
+      From worker 5:	t: 0.09415599999999996
+      From worker 4:	t: 0.41056224999999985
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	t: 0.09415599999999996
+      From worker 5:	t: 0.41056224999999985
+      From worker 3:	t: 0.030874749999999986
+      From worker 4:	t: 0.41056224999999985
+      From worker 5:	t: 0.41056224999999985
+      From worker 3:	t: 0.09415599999999996
+      From worker 4:	t: 0.41056224999999985
+      From worker 5:	t: 0.41056224999999985
+      From worker 3:	t: 0.09415599999999996
+      From worker 4:	t: 0.41056224999999985
+      From worker 3:	t: 0.09415599999999996
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	t: 0.41056224999999985
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.617618332973239
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.41056224999999985
+      From worker 3:	t: 0.41056224999999985
+      From worker 5:	Running task for (i1) = (4) on worker: 5
+      From worker 5:	:L => 40
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	t: 0.618865709792155
+      From worker 5:	t: 0.617618332973239
+      From worker 3:	t: 0.41056224999999985
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	Running task for (i1) = (3) on worker: 4
+      From worker 4:	:L => 30
+      From worker 4:	t: 0.617618332973239
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.41056224999999985
+      From worker 5:	t: 0.0
+      From worker 4:	t: 0.618865709792155
+      From worker 3:	Running task for (i1) = (2) on worker: 3
+      From worker 3:	:L => 20
+      From worker 3:	t: 0.41056224999999985
+      From worker 5:	t: 0.41056224999999985
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.0
+      From worker 5:	t: 0.617618332973239
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.7806182499192649
+      From worker 5:	t: 0.618865709792155
+      From worker 4:	t: 0.6188660549200853
+      From worker 3:	t: 0.0
+      From worker 5:	t: 1.0e-6
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.7829017009208646
+      From worker 5:	t: 0.618865709792155
+      From worker 3:	t: 0.617618332973239
+      From worker 5:	t: 0.7806182499192649
+      From worker 4:	t: 1.0e-6
+      From worker 3:	t: 0.6188660549200853
+      From worker 4:	t: 0.9317829392917677
+      From worker 5:	t: 0.618865709792155
+      From worker 4:	t: 0.6188660549200853
+      From worker 3:	t: 1.0e-6
+      From worker 3:	t: 0.6188660549200853
+      From worker 5:	t: 5.999999999999999e-6
+      From worker 4:	t: 0.9350599393144421
+      From worker 3:	t: 0.617618332973239
+      From worker 5:	t: 0.618865709792155
+      From worker 5:	t: 0.9317829392917677
+      From worker 4:	t: 5.999999999999999e-6
+      From worker 3:	t: 0.6188660549200853
+      From worker 4:	t: 1.0851284639929097
+      From worker 5:	t: 0.7829017009208646
+      From worker 3:	t: 5.999999999999999e-6
+      From worker 4:	t: 0.7829022403570047
+      From worker 2:	Running task for (i1) = (2) on worker: 2
+      From worker 2:	:L => 20
+      From worker 2:	Running task for (i1) = (2) on worker: 2
+      From worker 2:	:L => 20
+      From worker 2:	Running task for (i1) = (2) on worker: 2
+      From worker 2:	:L => 20
+      From worker 2:	t: 0.0
+      From worker 2:	t: 0.0
+      From worker 3:	t: 0.6188660549200853
+      From worker 3:	t: 0.7806182499192649
+      From worker 5:	t: 3.0999999999999995e-5
+      From worker 5:	t: 0.7829017009208646
+      From worker 5:	t: 1.0851284639929097
+      From worker 4:	t: 1.089409885104749
+      From worker 4:	t: 3.0999999999999995e-5
+      From worker 3:	t: 0.7829022403570047
+      From worker 5:	t: 0.9350599393144421
+      From worker 4:	t: 1.2511212894595611
+      From worker 3:	t: 3.0999999999999995e-5
+      From worker 5:	t: 0.00015599999999999997
+      From worker 4:	t: 0.9350606161794773
+      From worker 3:	t: 0.7829022403570047
+      From worker 5:	t: 0.9350599393144421
+      From worker 3:	t: 0.9317829392917677
+      From worker 4:	t: 1.2565709449580913
+      From worker 5:	t: 1.2511212894595611
+      From worker 3:	t: 0.9350606161794773
+      From worker 4:	t: 0.00015599999999999997
+      From worker 5:	t: 1.089409885104749
+      From worker 3:	t: 0.00015599999999999997
+      From worker 4:	t: 1.441425320933651
+      From worker 5:	t: 0.0007809999999999998
+      From worker 3:	t: 0.9350606161794773
+      From worker 4:	t: 1.0894106151671223
+      From worker 5:	t: 1.089409885104749
+      From worker 3:	t: 1.0851284639929097
+      From worker 4:	t: 1.4485732798180588
+      From worker 5:	t: 1.441425320933651
+      From worker 3:	t: 1.0894106151671223
+      From worker 4:	t: 0.0007809999999999998
+      From worker 3:	t: 0.0007809999999999998
+      From worker 5:	t: 1.2565709449580913
+      From worker 4:	t: 1.654375173795471
+      From worker 3:	t: 1.0894106151671223
+      From worker 4:	t: 1.2565716618196552
+      From worker 5:	t: 0.0013434999999999996
+      From worker 3:	t: 1.2511212894595611
+      From worker 5:	t: 1.2565709449580913
+      From worker 4:	t: 1.66354837848297
+      From worker 3:	t: 1.2565716618196552
+      From worker 5:	t: 1.654375173795471
+      From worker 4:	t: 0.0013434999999999996
+      From worker 3:	t: 0.0013434999999999996
+      From worker 5:	t: 1.4485732798180588
+      From worker 3:	t: 1.2565716618196552
+      From worker 4:	t: 1.8731348846820475
+      From worker 3:	t: 1.441425320933651
+      From worker 5:	t: 0.004155999999999998
+      From worker 4:	t: 1.4485739370233195
+      From worker 5:	t: 1.4485732798180588
+      From worker 3:	t: 1.4485739370233195
+      From worker 4:	t: 1.8846231630451353
+      From worker 5:	t: 1.8731348846820475
+      From worker 3:	t: 0.004155999999999998
+      From worker 4:	t: 0.004155999999999998
+      From worker 5:	t: 1.66354837848297
+      From worker 3:	t: 1.4485739370233195
+      From worker 4:	t: 2.1102839196914394
+      From worker 3:	t: 1.654375173795471
+      From worker 5:	t: 0.01821849999999999
+      From worker 4:	t: 1.663548981338454
+      From worker 3:	t: 1.663548981338454
+      From worker 5:	t: 1.66354837848297
+      From worker 5:	t: 2.1102839196914394
+      From worker 4:	t: 2.124926518390552
+      From worker 3:	t: 0.01821849999999999
+      From worker 3:	t: 1.663548981338454
+      From worker 5:	t: 1.8846231630451353
+      From worker 4:	t: 0.01821849999999999
+      From worker 3:	t: 1.8731348846820475
+      From worker 4:	t: 2.3437823514472442
+      From worker 5:	t: 0.030874749999999986
+      From worker 3:	t: 1.8846237157468766
+      From worker 4:	t: 1.8846237157468766
+      From worker 5:	t: 1.8846231630451353
+      From worker 3:	t: 0.030874749999999986
+      From worker 4:	t: 2.3608507820913247
+      From worker 5:	t: 2.3437823514472442
+      From worker 3:	t: 1.8846237157468766
+      From worker 4:	t: 0.030874749999999986
+      From worker 5:	t: 2.124926518390552
+      From worker 3:	t: 2.1102839196914394
+      From worker 4:	t: 2.5736422215231034
+      From worker 5:	t: 0.09415599999999996
+      From worker 3:	t: 2.124927002382825
+      From worker 4:	t: 2.124927002382825
+      From worker 5:	t: 2.124926518390552
+      From worker 3:	t: 0.09415599999999996
+      From worker 5:	t: 2.5736422215231034
+      From worker 3:	t: 2.124927002382825
+      From worker 4:	t: 2.5926693500980056
+      From worker 5:	t: 2.3608507820913247
+      From worker 3:	t: 2.3437823514472442
+      From worker 4:	t: 0.09415599999999996
+      From worker 3:	t: 2.360851224666872
+      From worker 5:	t: 0.41056224999999985
+      From worker 5:	t: 2.3608507820913247
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 2.8094880328256244
+      From worker 5:	t: 2.8094880328256244
+      From worker 3:	t: 2.360851224666872
+      From worker 4:	t: 2.360851224666872
+      From worker 3:	t: 2.5736422215231034
+      From worker 5:	t: 2.5926693500980056
+      From worker 2:	t: 0.0
+      From worker 2:	t: 0.0
+      From worker 2:	t: 1.0e-6
+      From worker 2:	t: 1.0e-6
+      From worker 2:	t: 1.0e-6
+      From worker 2:	t: 1.0e-6
+      From worker 2:	t: 5.999999999999999e-6
+      From worker 2:	t: 5.999999999999999e-6
+      From worker 2:	t: 5.999999999999999e-6
+      From worker 2:	t: 5.999999999999999e-6
+      From worker 2:	t: 3.0999999999999995e-5
+      From worker 4:	t: 2.801306061304018
+      From worker 4:	t: 0.41056224999999985
+      From worker 4:	t: 3.0217492629978935
+      From worker 4:	t: 2.592669769906912
+      From worker 3:	t: 2.592669769906912
+      From worker 3:	t: 0.41056224999999985
+      From worker 3:	t: 2.592669769906912
+      From worker 3:	t: 2.8094880328256244
+      From worker 3:	t: 2.8013064606229476
+      From worker 5:	t: 0.41056224999999985
+      From worker 5:	t: 2.5926693500980056
+      From worker 5:	t: 3.0217492629978935
+      From worker 5:	t: 2.801306061304018
+      From worker 2:	t: 3.0999999999999995e-5
+      From worker 3:	t: 0.41056224999999985
+      From worker 2:	t: 3.0999999999999995e-5
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	t: 3.015537688662826
+      From worker 2:	t: 3.0999999999999995e-5
+      From worker 3:	t: 2.8013064606229476
+      From worker 5:	t: 2.801306061304018
+      From worker 2:	t: 0.00015599999999999997
+      From worker 2:	t: 0.00015599999999999997
+      From worker 4:	t: 0.41056224999999985
+      From worker 2:	t: 0.00015599999999999997
+      From worker 3:	t: 3.0217492629978935
+      From worker 5:	t: 3.236838212822718
+      From worker 4:	t: 3.236838212822718
+      From worker 2:	t: 0.00015599999999999997
+      From worker 3:	t: 3.0155380700040557
+      From worker 2:	t: 0.0007809999999999998
+      From worker 4:	t: 2.8013064606229476
+      From worker 5:	t: 3.015537688662826
+      From worker 2:	t: 0.0007809999999999998
+      From worker 2:	t: 0.0007809999999999998
+      From worker 2:	t: 0.0007809999999999998
+      From worker 2:	t: 0.0013434999999999996
+      From worker 2:	t: 0.0013434999999999996
+      From worker 2:	t: 0.0013434999999999996
+      From worker 2:	t: 0.0013434999999999996
+      From worker 2:	t: 0.004155999999999998
+      From worker 2:	t: 0.004155999999999998
+      From worker 2:	t: 0.004155999999999998
+      From worker 2:	t: 0.004155999999999998
+      From worker 2:	t: 0.01821849999999999
+      From worker 3:	t: 0.6188626021039798
+      From worker 3:	t: 3.0155380700040557
+      From worker 3:	t: 3.236838212822718
+      From worker 3:	t: 3.238915915249964
+      From worker 4:	t: 3.238915552120514
+      From worker 4:	t: 0.41056224999999985
+      From worker 4:	t: 3.462095033239127
+      From worker 4:	t: 3.0155380700040557
+      From worker 4:	t: 3.458694030929323
+      From worker 4:	t: 0.6188660549200853
+      From worker 4:	t: 3.6761238023975653
+      From worker 5:	t: 0.618865709792155
+      From worker 5:	t: 3.015537688662826
+      From worker 5:	t: 3.462095033239127
+      From worker 5:	t: 3.238915552120514
+      From worker 5:	t: 0.618865709792155
+      From worker 5:	t: 3.238915552120514
+      From worker 5:	t: 3.6761238023975653
+      From worker 4:	t: 3.238915915249964
+      From worker 2:	t: 0.01821849999999999
+      From worker 5:	t: 3.458694030929323
+      From worker 3:	t: 0.6188626021039798
+      From worker 2:	t: 0.01821849999999999
+      From worker 4:	t: 3.6679119728603053
+The program started
+      From worker 2:	t: 0.01821849999999999
+      From worker 2:	t: 0.030874749999999986
+      From worker 2:	t: 0.030874749999999986
+      From worker 2:	t: 0.030874749999999986
+      From worker 2:	t: 0.030874749999999986
+      From worker 2:	t: 0.09415599999999996
+      From worker 2:	t: 0.09415599999999996
+      From worker 2:	t: 0.09415599999999996
+      From worker 3:	t: 3.238915915249964
+      From worker 3:	t: 3.462095033239127
+      From worker 3:	t: 3.458694395368478
+      From worker 3:	t: 0.7828968552788836
+      From worker 3:	t: 3.458694395368478
+      From worker 5:	t: 0.7829017009208646
+      From worker 5:	t: 3.458694030929323
+      From worker 5:	t: 3.8771624730056153
+      From worker 5:	t: 3.6679119728603053
+      From worker 5:	t: 0.9350599393144421
+      From worker 5:	t: 3.6679119728603053
+      From worker 5:	t: 4.0716274476244205
+      From worker 4:	t: 0.6188660549200853
+      From worker 4:	t: 3.8771624730056153
+      From worker 4:	t: 3.458694395368478
+      From worker 4:	t: 3.871404540147972
+      From worker 4:	t: 0.7829022403570047
+      From worker 4:	t: 4.0716274476244205
+      From worker 5:	t: 3.871404540147972
+      From worker 5:	t: 1.089409885104749
+      From worker 5:	t: 3.871404540147972
+      From worker 5:	t: 4.259367275328973
+      From worker 5:	t: 4.067598206802832
+      From worker 4:	t: 3.667912351335617
+      From worker 4:	t: 4.067598206802832
+      From worker 4:	t: 0.9350606161794773
+      From worker 4:	t: 4.259367275328973
+      From worker 4:	t: 3.8714049391359104
+      From worker 2:	t: 0.09415599999999996
+      From worker 2:	t: 0.41056224999999985
+      From worker 2:	t: 0.41056224999999985
+      From worker 2:	t: 0.41056224999999985
+      From worker 2:	t: 0.41056224999999985
+      From worker 3:	t: 3.6761238023975653
+      From worker 3:	t: 3.667912351335617
+      From worker 3:	t: 0.9350538733188466
+      From worker 3:	t: 3.667912351335617
+      From worker 2:	t: 0.41056224999999985
+      From worker 4:	t: 4.258935419343409
+      From worker 3:	t: 3.8771624730056153
+      From worker 2:	Running task for (i1) = (1) on worker: 2
+      From worker 2:	:L => 10
+      From worker 2:	t: 0.41056224999999985
+      From worker 2:	t: 0.41056224999999985
+      From worker 5:	t: 1.2565709449580913
+      From worker 2:	t: 0.41056224999999985
+      From worker 3:	t: 3.8714049391359104
+      From worker 2:	t: 0.41056224999999985
+      From worker 5:	t: 4.067598206802832
+      From worker 4:	Running task for (i1) = (3) on worker: 4
+      From worker 4:	:L => 30
+      From worker 4:	t: 1.0894106151671223
+      From worker 2:	t: 0.0
+      From worker 4:	t: 4.444418251334155
+      From worker 2:	t: 0.41056224999999985
+      From worker 2:	t: 0.41056224999999985
+      From worker 3:	t: 1.0894033478442273
+      From worker 5:	t: 4.444418251334155
+      From worker 2:	t: 0.41056224999999985
+      From worker 4:	t: 4.067598628033441
+      From worker 2:	t: 0.617618332973239
+      From worker 3:	Running task for (i1) = (2) on worker: 3
+      From worker 3:	:L => 20
+      From worker 3:	t: 3.8714049391359104
+      From worker 2:	t: 1.0e-6
+      From worker 2:	t: 0.6188626021039798
+      From worker 3:	t: 4.0716274476244205
+      From worker 5:	Running task for (i1) = (4) on worker: 5
+      From worker 5:	:L => 40
+      From worker 5:	t: 4.258935419343409
+      From worker 4:	t: 4.447726150220555
+      From worker 2:	t: 0.6188626021039798
+      From worker 5:	t: 1.4485732798180588
+      From worker 2:	t: 0.6188626021039798
+      From worker 3:	t: 4.067598628033441
+      From worker 4:	t: 0.0
+      From worker 2:	t: 0.617618332973239
+      From worker 5:	t: 4.258935419343409
+      From worker 2:	t: 5.999999999999999e-6
+      From worker 4:	t: 1.2565716618196552
+      From worker 2:	t: 0.6188626021039798
+      From worker 3:	t: 1.256564525462844
+      From worker 4:	t: 4.627450587750518
+      From worker 2:	t: 0.6188626021039798
+      From worker 5:	t: 4.627450587750518
+      From worker 2:	t: 0.6188626021039798
+      From worker 3:	t: 0.0
+      From worker 4:	t: 4.258935862772025
+      From worker 2:	t: 0.7806182499192649
+      From worker 3:	t: 4.067598628033441
+      From worker 5:	t: 0.0
+      From worker 2:	t: 3.0999999999999995e-5
+      From worker 3:	t: 4.259367275328973
+      From worker 5:	t: 4.447726150220555
+      From worker 2:	t: 0.7828968552788836
+      From worker 2:	t: 0.7828968552788836
+      From worker 5:	t: 1.66354837848297
+      From worker 3:	t: 4.258935862772025
+      From worker 2:	t: 0.7828968552788836
+      From worker 4:	t: 4.632988942788957
+      From worker 2:	t: 0.9317829392917677
+      From worker 2:	t: 0.00015599999999999997
+      From worker 3:	t: 1.4485673679633586
+      From worker 4:	t: 1.0e-6
+      From worker 2:	t: 0.9350538733188466
+      From worker 5:	t: 4.447726150220555
+      From worker 2:	t: 0.9350538733188466
+      From worker 3:	t: 1.0e-6
+      From worker 4:	t: 1.4485739370233195
+      From worker 3:	t: 4.258935862772025
+      From worker 4:	t: 4.810401687566604
+      From worker 2:	t: 0.9350538733188466
+      From worker 5:	t: 4.810401687566604
+      From worker 3:	t: 4.444418251334155
+      From worker 2:	t: 1.0851284639929097
+      From worker 4:	t: 4.447726614928156
+      From worker 2:	t: 0.0007809999999999998
+      From worker 5:	t: 1.0e-6
+      From worker 2:	t: 1.0894033478442273
+      From worker 3:	t: 4.447726614928156
+      From worker 4:	t: 4.817711664395112 17.200168 seconds (3.80 M allocations: 3.181 GiB, 4.73% gc time, 135 lock conflicts, 21.48% compilation time: <1% of which was recompilation)
+      From worker 5:	t: 4.632988942788957 17.291979 seconds (3.82 M allocations: 3.265 GiB, 5.33% gc time, 136 lock conflicts, 21.66% compilation time: <1% of which was recompilation)
+      From worker 2:	t: 1.0894033478442273
+      From worker 5:	
+      From worker 4:	
+      From worker 2:	t: 1.0894033478442273
+      From worker 3:	t: 1.6635428422523157
+      From worker 2:	t: 1.2511212894595611
+      From worker 2:	t: 0.0013434999999999996
+      From worker 3:	t: 5.999999999999999e-6
+      From worker 2:	t: 1.256564525462844
+      From worker 3:	t: 4.447726614928156
+      From worker 2:	t: 1.256564525462844
+      From worker 3:	t: 4.627450587750518
+      From worker 2:	t: 1.256564525462844
+      From worker 2:	t: 1.441425320933651
+      From worker 3:	t: 4.632989424926148
+      From worker 2:	t: 0.004155999999999998
+      From worker 3:	t: 1.8846178673356766
+      From worker 2:	t: 1.4485673679633586
+      From worker 2:	t: 1.4485673679633586
+      From worker 3:	t: 3.0999999999999995e-5
+      From worker 3:	t: 4.632989424926148
+      From worker 2:	t: 1.4485673679633586
+      From worker 3:	t: 4.810401687566604
+      From worker 2:	t: 1.654375173795471
+      From worker 5:	t: 1.8846231630451353
+      From worker 2:	t: 0.01821849999999999
+      From worker 3:	t: 4.817712159385841
+      From worker 5:	t: 4.632988942788957
+      From worker 2:	t: 1.6635428422523157
+      From worker 4:	t: 5.999999999999999e-6
+      From worker 2:	t: 1.6635428422523157
+      From worker 3:	t: 2.1249201249270495 17.655803 seconds (3.38 M allocations: 3.262 GiB, 3.64% gc time, 143 lock conflicts, 16.95% compilation time: <1% of which was recompilation)
+      From worker 4:	t: 1.663548981338454 17.731147 seconds (4.34 M allocations: 3.318 GiB, 4.59% gc time, 136 lock conflicts, 21.01% compilation time: 16% of which was recompilation)
+      From worker 4:	
+      From worker 5:	Saved all results.
+      From worker 2:	t: 1.6635428422523157
+      From worker 3:	
+      From worker 4:	Saved all results.
+      From worker 5:	t: 5.999999999999999e-6
+      From worker 5:	t: 4.817711664395112
+      From worker 2:	t: 1.8731348846820475
+      From worker 4:	t: 4.632989424926148
+      From worker 5:	t: 2.124926518390552
+      From worker 2:	t: 0.030874749999999986
+      From worker 4:	Saved all results.
+      From worker 2:	t: 1.8846178673356766
+      From worker 5:	t: 4.817711664395112 15.969092 seconds (3.96 M allocations: 3.483 GiB, 5.64% gc time, 139 lock conflicts, 8.26% compilation time: 39% of which was recompilation)
+      From worker 4:	t: 3.0999999999999995e-5
+      From worker 4:	t: 1.8846237157468766
+      From worker 5:	
+      From worker 2:	t: 1.8846178673356766
+      From worker 4:	t: 4.817712159385841
+      From worker 2:	t: 1.8846178673356766
+      From worker 5:	t: 3.0999999999999995e-5
+      From worker 4:	t: 0.00015599999999999997
+      From worker 2:	t: 2.1102839196914394
+      From worker 5:	Saved all results. 16.504383 seconds (4.05 M allocations: 3.582 GiB, 5.50% gc time, 140 lock conflicts, 8.05% compilation time: 39% of which was recompilation)
+      From worker 5:	
+      From worker 4:	t: 2.124927002382825 16.499001 seconds (4.02 M allocations: 3.465 GiB, 4.99% gc time, 138 lock conflicts, 8.56% compilation time: 41% of which was recompilation)
+      From worker 4:	
+      From worker 2:	t: 0.09415599999999996
+      From worker 5:	t: 2.3608507820913247
+      From worker 5:	Saved all results.
+      From worker 4:	Saved all results.
+      From worker 2:	t: 2.1249201249270495
+      From worker 5:	t: 0.00015599999999999997
+      From worker 5:	t: 2.5926693500980056
+      From worker 4:	t: 0.0007809999999999998
+      From worker 2:	t: 2.1249201249270495
+      From worker 4:	t: 2.360851224666872
+      From worker 5:	t: 0.0007809999999999998
+      From worker 4:	t: 0.0013434999999999996
+      From worker 2:	t: 2.1249201249270495
+      From worker 5:	t: 2.801306061304018
+      From worker 4:	t: 2.592669769906912
+      From worker 3:	t: 0.00015599999999999997
+      From worker 3:	 18.868383 seconds (4.44 M allocations: 3.384 GiB, 3.49% gc time, 142 lock conflicts, 20.26% compilation time: 18% of which was recompilation)
+      From worker 5:	t: 0.0013434999999999996
+      From worker 4:	t: 0.004155999999999998
+      From worker 2:	t: 2.3437823514472442
+      From worker 3:	Saved all results.
+      From worker 3:	t: 4.817712159385841
+      From worker 5:	t: 3.015537688662826
+      From worker 4:	t: 2.8013064606229476
+      From worker 2:	t: 0.41056224999999985
+      From worker 3:	Saved all results.
+      From worker 4:	t: 0.01821849999999999
+      From worker 2:	t: 2.360843506997456
+      From worker 5:	t: 0.004155999999999998
+      From worker 5:	t: 3.238915552120514
+      From worker 4:	t: 3.0155380700040557
+      From worker 2:	t: 2.360843506997456
+      From worker 5:	t: 0.01821849999999999
+      From worker 3:	t: 2.360843506997456 19.579467 seconds (4.54 M allocations: 3.467 GiB, 4.26% gc time, 143 lock conflicts, 19.88% compilation time: 18% of which was recompilation)
+      From worker 3:	
+      From worker 4:	t: 0.030874749999999986
+      From worker 2:	t: 2.360843506997456
+      From worker 5:	t: 3.458694030929323
+      From worker 3:	t: 0.0007809999999999998
+      From worker 4:	t: 3.238915915249964
+      From worker 5:	t: 0.030874749999999986
+      From worker 3:	Saved all results.
+      From worker 2:	t: 2.5736422215231034
+      From worker 3:	t: 2.59266105623038
+      From worker 4:	t: 0.09415599999999996
+      From worker 5:	t: 3.6679119728603053
+      From worker 3:	t: 0.0013434999999999996
+      From worker 5:	t: 0.09415599999999996
+      From worker 2:	t: 0.41056224999999985
+      From worker 4:	t: 3.458694395368478
+      From worker 3:	t: 2.8012968505400115
+      From worker 4:	t: 0.41056224999999985
+      From worker 5:	t: 3.871404540147972
+      From worker 2:	t: 2.59266105623038
+      From worker 3:	t: 0.004155999999999998
+      From worker 4:	t: 3.667912351335617
+      From worker 5:	t: 0.41056224999999985
+      From worker 2:	t: 2.59266105623038
+      From worker 3:	t: 3.015526494529141
+      From worker 4:	t: 0.41056224999999985
+      From worker 5:	t: 4.067598206802832
+      From worker 3:	t: 0.01821849999999999
+      From worker 2:	t: 2.59266105623038
+      From worker 5:	t: 0.41056224999999985
+      From worker 4:	t: 3.8714049391359104
+      From worker 3:	t: 3.2389000700696595
+      From worker 5:	t: 4.258935419343409
+      From worker 2:	t: 2.8094880328256244
+      From worker 4:	t: 0.41056224999999985
+      From worker 3:	t: 0.030874749999999986
+      From worker 5:	t: 0.41056224999999985
+      From worker 2:	t: 0.41056224999999985
+      From worker 4:	t: 4.067598628033441
+      From worker 3:	t: 3.4586751841504153
+      From worker 5:	t: 4.447726150220555
+      From worker 2:	t: 2.8012968505400115
+      From worker 4:	t: 0.6188660549200853
+      From worker 3:	t: 0.09415599999999996
+      From worker 5:	t: 0.618865709792155
+      From worker 2:	t: 2.8012968505400115
+      From worker 3:	t: 3.667891871297457
+      From worker 4:	t: 4.258935862772025
+      From worker 5:	t: 4.632988942788957
+      From worker 2:	t: 2.8012968505400115
+      From worker 4:	t: 0.6188660549200853
+      From worker 3:	t: 0.41056224999999985
+      From worker 5:	t: 0.618865709792155
+      From worker 4:	t: 4.447726614928156
+      From worker 3:	t: 3.871381209141772
+      From worker 5:	t: 4.817711664395112
+      From worker 2:	t: 3.0217492629978935
+      From worker 4:	t: 0.7829022403570047
+      From worker 3:	t: 0.41056224999999985
+      From worker 5:	t: 0.7829017009208646
+      From worker 2:	t: 0.617618332973239
+      From worker 5:	 18.610315 seconds (4.58 M allocations: 3.981 GiB, 3.31% gc time, 108 lock conflicts, 7.30% compilation time: 42% of which was recompilation)
+      From worker 2:	t: 3.015526494529141
+      From worker 3:	t: 4.0675707099946745
+      From worker 4:	t: 4.632989424926148
+      From worker 5:	Saved all results.
+      From worker 5:	t: 0.9350599393144421
+      From worker 2:	t: 3.015526494529141
+      From worker 3:	t: 0.41056224999999985
+      From worker 4:	t: 0.9350606161794773
+      From worker 5:	t: 1.089409885104749
+      From worker 3:	t: 4.258898738960255
+      From worker 2:	t: 3.015526494529141
+      From worker 4:	t: 4.817712159385841
+      From worker 2:	t: 3.236838212822718
+      From worker 3:	t: 0.6188626021039798
+      From worker 5:	t: 1.2565709449580913
+      From worker 4:	t: 1.0894106151671223
+      From worker 2:	t: 0.617618332973239
+      From worker 3:	t: 4.447673108610546
+      From worker 5:	t: 1.4485732798180588
+      From worker 4:	 19.462585 seconds (4.57 M allocations: 3.844 GiB, 3.48% gc time, 103 lock conflicts, 7.39% compilation time: 44% of which was recompilation)
+      From worker 2:	t: 3.2389000700696595
+      From worker 2:	t: 3.2389000700696595
+      From worker 3:	t: 0.6188626021039798
+      From worker 4:	Saved all results.
+      From worker 4:	t: 1.2565716618196552
+      From worker 5:	t: 1.66354837848297
+      From worker 4:	t: 1.4485739370233195
+      From worker 3:	t: 4.632912545577501
+      From worker 2:	t: 3.2389000700696595
+      From worker 5:	t: 1.8846231630451353
+      From worker 4:	t: 1.663548981338454
+      From worker 3:	t: 0.7828968552788836
+      From worker 5:	t: 2.124926518390552
+      From worker 2:	t: 3.462095033239127
+      From worker 4:	t: 1.8846237157468766
+      From worker 3:	t: 4.817598898227176
+      From worker 5:	t: 2.3608507820913247
+      From worker 2:	t: 0.7806182499192649
+      From worker 3:	t: 0.9350538733188466
+      From worker 5:	t: 2.5926693500980056
+      From worker 4:	t: 2.124927002382825
+      From worker 2:	t: 3.4586751841504153
+      From worker 5:	t: 2.801306061304018
+      From worker 3:	t: 4.999957431132284
+      From worker 4:	t: 2.360851224666872
+      From worker 2:	t: 3.4586751841504153
+      From worker 5:	t: 3.015537688662826
+      From worker 3:	t: 1.0894033478442273
+      From worker 4:	t: 2.592669769906912
+      From worker 3:	 20.907692 seconds (4.61 M allocations: 3.852 GiB, 3.32% gc time, 109 lock conflicts, 8.15% compilation time: 39% of which was recompilation)
+      From worker 2:	t: 3.4586751841504153
+      From worker 5:	t: 3.238915552120514
+      From worker 4:	t: 2.8013064606229476
+      From worker 5:	t: 3.458694030929323
+      From worker 4:	t: 3.0155380700040557
+      From worker 2:	t: 3.6761238023975653
+      From worker 4:	t: 3.238915915249964
+      From worker 5:	t: 3.6679119728603053
+      From worker 2:	t: 0.9317829392917677
+      From worker 4:	t: 3.458694395368478
+      From worker 2:	t: 3.667891871297457
+      From worker 5:	t: 3.871404540147972
+      From worker 2:	t: 3.667891871297457
+      From worker 3:	Saved all results.
+      From worker 4:	t: 3.667912351335617
+      From worker 3:	t: 1.256564525462844
+      From worker 5:	t: 4.067598206802832
+      From worker 3:	t: 1.4485673679633586
+      From worker 4:	t: 3.8714049391359104
+      From worker 2:	t: 3.667891871297457
+      From worker 3:	t: 1.6635428422523157
+      From worker 5:	t: 4.258935419343409
+      From worker 4:	t: 4.067598628033441
+      From worker 2:	t: 3.8771624730056153
+      From worker 3:	t: 1.8846178673356766
+      From worker 5:	t: 4.447726150220555
+      From worker 4:	t: 4.258935862772025
+      From worker 3:	t: 2.1249201249270495
+      From worker 2:	t: 1.0851284639929097
+      From worker 3:	t: 2.360843506997456
+      From worker 4:	t: 4.447726614928156
+      From worker 2:	t: 3.871381209141772
+      From worker 5:	t: 4.632988942788957
+      From worker 3:	t: 2.59266105623038
+      From worker 2:	t: 3.871381209141772
+      From worker 4:	t: 4.632989424926148
+      From worker 5:	t: 4.817711664395112
+      From worker 3:	t: 2.8012968505400115
+      From worker 2:	t: 3.871381209141772
+      From worker 3:	t: 3.015526494529141
+      From worker 4:	t: 4.817712159385841
+      From worker 5:	 14.324635 seconds (3.34 M allocations: 2.480 GiB, 3.86% gc time, 25 lock conflicts, 9.68% compilation time: 42% of which was recompilation)
+      From worker 2:	t: 4.0716274476244205
+      From worker 5:	Saved all results.
+      From worker 3:	t: 3.2389000700696595
+      From worker 4:	 14.956706 seconds (3.43 M allocations: 2.464 GiB, 4.06% gc time, 28 lock conflicts, 9.91% compilation time: 44% of which was recompilation)
+      From worker 4:	Saved all results.
+      From worker 2:	t: 1.2511212894595611
+      From worker 3:	t: 3.4586751841504153
+      From worker 2:	t: 4.0675707099946745
+      From worker 3:	t: 3.667891871297457
+      From worker 2:	t: 4.0675707099946745
+      From worker 3:	t: 3.871381209141772
+      From worker 2:	t: 4.0675707099946745
+      From worker 3:	t: 4.0675707099946745
+      From worker 3:	t: 4.258898738960255
+      From worker 2:	t: 4.259367275328973
+      From worker 3:	t: 4.447673108610546
+      From worker 2:	t: 1.441425320933651
+      From worker 3:	t: 4.632912545577501
+      From worker 2:	t: 4.258898738960255
+      From worker 2:	t: 4.258898738960255
+      From worker 3:	t: 4.817598898227176
+      From worker 2:	t: 4.258898738960255
+      From worker 3:	t: 4.999957431132284
+      From worker 2:	t: 4.444418251334155
+      From worker 3:	 16.868411 seconds (3.79 M allocations: 2.644 GiB, 2.37% gc time, 32 lock conflicts, 10.22% compilation time: 42% of which was recompilation)
+      From worker 3:	Saved all results.
+      From worker 2:	t: 1.654375173795471
+      From worker 2:	t: 4.447673108610546
+      From worker 2:	t: 4.447673108610546
+      From worker 2:	t: 4.447673108610546
+      From worker 2:	t: 4.627450587750518
+      From worker 2:	t: 1.8731348846820475
+      From worker 2:	t: 4.632912545577501
+      From worker 2:	t: 4.632912545577501
+      From worker 2:	t: 4.632912545577501
+      From worker 2:	t: 4.810401687566604
+      From worker 2:	t: 2.1102839196914394
+      From worker 2:	t: 4.817598898227176 29.228757 seconds (4.06 M allocations: 3.985 GiB, 3.36% gc time, 173 lock conflicts, 15.93% compilation time)
+      From worker 2:	
+      From worker 2:	t: 4.817598898227176
+      From worker 2:	t: 4.817598898227176
+      From worker 2:	Saved all results.
+      From worker 2:	t: 2.3437823514472442
+      From worker 2:	t: 4.999957431132284
+      From worker 2:	t: 4.999957431132284
+      From worker 2:	t: 4.999957431132284 30.568869 seconds (5.56 M allocations: 4.316 GiB, 3.35% gc time, 177 lock conflicts, 15.71% compilation time: 10% of which was recompilation)
+      From worker 2:	
+      From worker 2:	t: 2.5736422215231034
+      From worker 2:	 30.981678 seconds (5.66 M allocations: 4.399 GiB, 3.33% gc time, 177 lock conflicts, 15.50% compilation time: 10% of which was recompilation)
+      From worker 2:	Saved all results. 31.267556 seconds (5.70 M allocations: 4.442 GiB, 3.31% gc time, 176 lock conflicts, 15.36% compilation time: 10% of which was recompilation)
+      From worker 2:	
+      From worker 2:	Saved all results.
+      From worker 2:	Saved all results.
+      From worker 2:	t: 2.8094880328256244
+      From worker 2:	t: 3.0217492629978935
+      From worker 2:	t: 3.236838212822718
+      From worker 2:	t: 3.462095033239127
+      From worker 2:	t: 3.6761238023975653
+      From worker 2:	t: 3.8771624730056153
+      From worker 2:	t: 4.0716274476244205
+      From worker 2:	t: 4.259367275328973
+      From worker 2:	t: 4.444418251334155
+      From worker 2:	t: 4.627450587750518
+      From worker 2:	t: 4.810401687566604
+      From worker 2:	 25.806153 seconds (5.57 M allocations: 4.385 GiB, 2.79% gc time, 128 lock conflicts, 5.10% compilation time: 36% of which was recompilation)
+      From worker 2:	Saved all results.

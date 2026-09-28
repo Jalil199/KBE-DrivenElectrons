@@ -41,3 +41,18 @@ or
 
 This matters in restricted environments where the default Julia depot or Matplotlib config path may be read-only.
 Also, parallel jobs must produce distinct output filenames; if two workers run the exact same parameter set, they can collide while writing `Data/*.jld2`.
+
+## Material recovered from kubo (2026-09-29)
+
+Files that only existed on `kubo:~jalil2` and were added here without changes:
+
+- `precompute_wigner.jl`, `FinalFigure.ipynb`, `FinalFigure_package_version.ipynb`
+  (21 May 2026): Wigner-function precomputation and the two versions of the
+  final paper figure notebook (`Desktop/KBE-DrivenElectrons` and
+  `Desktop/FinalFigure_package`). The precomputed `wigner_precomputed.jld2`
+  (1.7 GB) stays on kubo.
+- `notebooks/kubo_tests_and_figures/`: test notebooks (`KBE-Test*`, `Krylov`,
+  `KBE_Orb`, `Figures_comparison`) and paper figures from `Documents/KBA`
+  (April 2026), plus `F.png` and `G_lesser.pdf`.
+- `legacy/bloch_electrons/`: November 2025 predecessor written with
+  `KadanoffBaym.jl` (`Documents/Bloch_Electrons`).

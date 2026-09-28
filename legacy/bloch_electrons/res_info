@@ -1,0 +1,39 @@
+ERROR: LoadError: On worker 2:
+UndefVarError: `Ls` not defined in `Main`
+Stacktrace:
+ [1] top-level scope
+   @ /mnt/graphene/home/jalil2/Documents/Bloch_Electrons/run_parallel.jl:17
+ [2] eval
+   @ ./boot.jl:430
+ [3] #invokelatest#2
+   @ ./essentials.jl:1055
+ [4] invokelatest
+   @ ./essentials.jl:1052
+ [5] #114
+   @ /mnt/graphene/home/jalil2/julia-1.11.3/share/julia/stdlib/v1.11/Distributed/src/process_messages.jl:303
+ [6] run_work_thunk
+   @ /mnt/graphene/home/jalil2/julia-1.11.3/share/julia/stdlib/v1.11/Distributed/src/process_messages.jl:70
+ [7] run_work_thunk
+   @ /mnt/graphene/home/jalil2/julia-1.11.3/share/julia/stdlib/v1.11/Distributed/src/process_messages.jl:79
+ [8] #100
+   @ /mnt/graphene/home/jalil2/julia-1.11.3/share/julia/stdlib/v1.11/Distributed/src/process_messages.jl:88
+
+...and 12 more exceptions.
+
+Stacktrace:
+ [1] sync_end(c::Channel{Any})
+   @ Base ./task.jl:466
+ [2] macro expansion
+   @ ./task.jl:499 [inlined]
+ [3] remotecall_eval(m::Module, procs::Vector{Int64}, ex::Expr)
+   @ Distributed /mnt/graphene/home/jalil2/julia-1.11.3/share/julia/stdlib/v1.11/Distributed/src/macros.jl:219
+ [4] top-level scope
+   @ /mnt/graphene/home/jalil2/julia-1.11.3/share/julia/stdlib/v1.11/Distributed/src/macros.jl:203
+in expression starting at /mnt/graphene/home/jalil2/Documents/Bloch_Electrons/run_parallel.jl:11
+Available workers: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+number threads used in operations is : 1
+The program started
+      From worker 3:	Running task for (i1) = (2) on worker: 3
+      From worker 2:	Running task for (i1) = (1) on worker: 2
+      From worker 4:	Running task for (i1) = (3) on worker: 4
+      From worker 5:	Running task for (i1) = (4) on worker: 5
