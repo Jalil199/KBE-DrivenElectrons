@@ -20,25 +20,61 @@ relaxation times.
 | `main.jl` | Single-band chain, $`\epsilon_k = u - 2\gamma\cos k`$ | 1 |
 | `main-rice_mele.jl` | Rice–Mele chain, $`H_k = \vec{d}(k)\cdot\vec{\sigma}`$ with $`d_x = t_1 + t_2\cos k`$, $`d_y = t_2\sin k`$, $`d_z = \Delta/2`$ | 2 |
 
-Both models share the same structure:
+Both models share the same structure.
 
-- **Drive.** Peierls substitution $`k \to k - A(t)`$ with a Gaussian pulse
-  $`A(t) = A \exp[-(t-t_0)^2/2\sigma^2] \sin(\omega_0 t)`$. Set `A = 0.0` to
-  study relaxation without light.
-- **Bath.** Second-order (SCBA) self-energy with momentum exchange,
+### Drive
 
-  ```math
-  \Sigma^{<,>}_{k}(t,t') = \frac{i}{L}\sum_{q} \Xi^{<,>}_{q}(t,t')\, G^{<,>}_{k-q}(t,t')
-  ```
+Peierls substitution $`k \to k - A(t)`$ with a Gaussian pulse
 
-  The bosonic kernel $`\Xi_q`$ can be:
-  - `bath_type = :spectral_density`: a local Ohmic-like bath $`J(\omega)=\alpha|\omega|^s e^{-|\omega|/\omega_c}`$;
-  - `bath_type = :dispersion`: dispersive bosons $`\omega_q = \omega_{b0} + v_b|q|`$ (`:linear`) or $`\omega_{b0} + 2v_b|\sin(q/2)|`$ (`:sin_lattice`),
-    with sharp modes (`boson_kernel = :delta`, damping `η`) or Lorentzian spectral functions (`boson_kernel = :spectral`).
-  - Momentum weights $`w_q`$: `:uniform` or `:power_exp`, $`|q|^{s_q} e^{-|q|/\lambda_q}`$; coupling $`g_q^2 = \alpha w_q`$.
+```math
+A(t) = A \, \exp\!\left[-\frac{(t-t_0)^2}{2\sigma^2}\right] \sin(\omega_0 t)
+```
+
+Set `A = 0.0` to study relaxation without light.
+
+### Bath
+
+Second-order (SCBA) self-energy with momentum exchange:
+
+```math
+\Sigma^{<,>}_{k}(t,t') = \frac{i}{L} \sum_{q} \Xi^{<,>}_{q}(t,t') \, G^{<,>}_{k-q}(t,t')
+```
+
+The bosonic kernel $`\Xi_q`$ is selected with `bath_type`:
+
+**`bath_type = :spectral_density`**: a local Ohmic-like bath with spectral density
+
+```math
+J(\omega) = \alpha \, \lvert\omega\rvert^{s} \, e^{-\lvert\omega\rvert/\omega_c}
+```
+
+**`bath_type = :dispersion`**: dispersive bosons with
+
+```math
+\omega_q = \omega_{b0} + v_b \lvert q \rvert \quad (\texttt{:linear}),
+\qquad
+\omega_q = \omega_{b0} + 2 v_b \lvert \sin(q/2) \rvert \quad (\texttt{:sin\_lattice})
+```
+
+Each mode is either sharp (`boson_kernel = :delta`, damped by `η`) or broadened
+with a Lorentzian spectral function (`boson_kernel = :spectral`):
+
+```math
+B_q(\omega) = \frac{2\eta}{(\omega-\omega_q)^2+\eta^2} - \frac{2\eta}{(\omega+\omega_q)^2+\eta^2}
+```
+
+The coupling is $`g_q^2 = \alpha \, w_q`$, with momentum weights
+`wq_profile = :uniform` ($`w_q = 1`$) or `:power_exp`:
+
+```math
+w_q = \lvert q \rvert^{s_q} \, e^{-\lvert q \rvert/\lambda_q}
+```
+
+### Other options
+
 - **Second bath** (Rice–Mele only, `use_bath2 = true`): an extra, typically flat
-  (Einstein-like) boson branch (`α2`, `ωb0_2`, `η2`, `λ_q2`, …) to provide
-  interband decay.
+  (Einstein-like) boson branch (`α2`, `ωb0_2`, `η2`, `λ_q2`, …) that adds to
+  $`\Xi_q`$ and provides interband decay.
 - **Initial state.** Thermal at electron temperature `Te` (bath at `Tb`), or,
   for Rice–Mele, `init_type = :upper_full` (upper band full, lower band empty).
 - **Switch-on.** `switch_on = true` turns the coupling on smoothly between `ti` and `to`.
