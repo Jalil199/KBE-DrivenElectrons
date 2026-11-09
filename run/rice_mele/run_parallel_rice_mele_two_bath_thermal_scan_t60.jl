@@ -1,10 +1,14 @@
 using Distributed
 
-n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "39"))
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
+n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "24"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main-rice_mele.jl")
+const _MAIN = joinpath(pwd(), "main-rice_mele.jl")
+@everywhere include($_MAIN)
 
 tmax = 60
 force = false
@@ -16,10 +20,8 @@ base = (
     Δ                = 2.0,
     Te               = 1.0,
     Tb               = 0.1,
-    α                = 0.0,
     s                = 1.0,
     ωc               = 3.0,
-    η                = 0.05,
     t0               = 20.0,
     ω0               = 2.2,
     σ                = 2.0,
@@ -37,7 +39,6 @@ base = (
     v_b              = 0.2,
     wq_profile       = :power_exp,
     s_q              = 1.0,
-    λ_q              = 1.0,
     use_bath2        = true,
     α2               = 0.5,
     ωb0_2            = 2.5,
@@ -53,35 +54,29 @@ base = (
 param_sets = NamedTuple[]
 seen = Set{Tuple{Float64,Float64,Float64,Float64}}()
 
-function add_case!(param_sets, seen; scan, ωb0_2, η2=0.1, λ_q2=10.0, α2=0.5)
-    key = (Float64(ωb0_2), Float64(η2), Float64(λ_q2), Float64(α2))
+function add_case!(param_sets, seen; α, η, λ_q, ωb0_2)
+    key = (Float64(α), Float64(η), Float64(λ_q), Float64(ωb0_2))
     key in seen && return
-    if scan != :resonance && η2 == 0.1 && λ_q2 == 10.0 && α2 == 0.5
-        # Covered by the concurrently running flat-bath resonance scan.
-        return
-    end
     push!(seen, key)
-    label = Symbol("$(scan)_wb2$(ωb0_2)_eta2$(η2)_lq2$(λ_q2)_a2$(α2)")
-    push!(param_sets, merge(base, (; ωb0_2=Float64(ωb0_2), η2=Float64(η2), λ_q2=Float64(λ_q2), α2=Float64(α2), label)))
+    label = Symbol("a$(α)_eta$(η)_lq$(λ_q)_wb2$(ωb0_2)")
+    push!(param_sets, merge(base, (; α=Float64(α), η=Float64(η), λ_q=Float64(λ_q), ωb0_2=Float64(ωb0_2), label)))
 end
 
-for ωb0_2 in (2.0, 2.5, 3.0), η2 in (0.02, 0.05, 0.1, 0.2, 0.5)
-    add_case!(param_sets, seen; scan=:eta2, ωb0_2, η2)
+# Main bath-1 scan with the resonant bath-2 frequency fixed at ωb0_2=2.5.
+for α in (1.0, 2.0, 4.0), η in (0.05, 0.5), λ_q in (0.2, 0.5, 1.0)
+    add_case!(param_sets, seen; α, η, λ_q, ωb0_2=2.5)
 end
 
-for ωb0_2 in (2.0, 2.5, 3.0), λ_q2 in (0.5, 1.0, 3.0, 10.0)
-    add_case!(param_sets, seen; scan=:lq2, ωb0_2, λ_q2)
-end
-
-for ωb0_2 in (2.0, 2.5, 3.0), α2 in (0.1, 0.25, 0.5, 1.0)
-    add_case!(param_sets, seen; scan=:a2, ωb0_2, α2)
+# Frequency controls for bath 2 on representative bath-1 cases.
+for ωb0_2 in (1.0, 2.0, 2.5, 3.0), α in (1.0, 4.0)
+    add_case!(param_sets, seen; α, η=0.05, λ_q=1.0, ωb0_2)
 end
 
 println("Total unique runs: $(length(param_sets))")
 for p in param_sets
     println(
         "Case $(p.label): α=$(p.α), η=$(p.η), λ_q=$(p.λ_q), Tb=$(p.Tb), ",
-        "bath2=(α2=$(p.α2), ωb0_2=$(p.ωb0_2), η2=$(p.η2), λ_q2=$(p.λ_q2)), tmax=$(tmax)",
+        "bath2=(α2=$(p.α2), ωb0_2=$(p.ωb0_2), η2=$(p.η2), λ_q2=$(p.λ_q2))",
     )
 end
 
@@ -91,7 +86,7 @@ results = pmap(param_sets) do p
     label = p.label
     run_params = Base.structdiff(p, NamedTuple{(:label,)})
     name_p = make_name(ModelElectronBath(; run_params...); tmax)
-    logfile = "logs/rice_flat_bath_paramscan_t60_$(label).log"
+    logfile = "logs/rice_two_bath_thermal_t60_$(label).log"
 
     if !force && isfile("Data_rice/GL_$(name_p).jld2")
         open(logfile, "w") do io

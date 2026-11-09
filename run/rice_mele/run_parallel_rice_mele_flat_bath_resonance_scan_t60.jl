@@ -1,10 +1,14 @@
 using Distributed
 
-n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "36"))
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
+n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "24"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main-rice_mele.jl")
+const _MAIN = joinpath(pwd(), "main-rice_mele.jl")
+@everywhere include($_MAIN)
 
 tmax = 60
 force = false
@@ -36,8 +40,7 @@ base = (
     wq_profile       = :power_exp,
     s_q              = 1.0,
     use_bath2        = true,
-    α2               = 1.0,
-    ωb0_2            = 2.5,
+    α2               = 0.5,
     v_b2             = 0.0,
     η2               = 0.1,
     dispersion_type2 = :linear,
@@ -48,25 +51,31 @@ base = (
 )
 
 param_sets = NamedTuple[]
-seen = Set{Tuple{Float64,Float64,Float64}}()
+seen = Set{Tuple{Float64,Float64,Float64,Float64}}()
 
-function add_case!(param_sets, seen; α, η, λ_q)
-    key = (Float64(α), Float64(η), Float64(λ_q))
+function add_case!(param_sets, seen; α, η, λ_q, ωb0_2)
+    key = (Float64(α), Float64(η), Float64(λ_q), Float64(ωb0_2))
     key in seen && return
     push!(seen, key)
-    label = Symbol("thermal_a$(α)_eta$(η)_lq$(λ_q)_bestb2_lqfine")
-    push!(param_sets, merge(base, (; α=Float64(α), η=Float64(η), λ_q=Float64(λ_q), label)))
+    label = Symbol("a$(α)_eta$(η)_lq$(λ_q)_wb2$(ωb0_2)")
+    push!(param_sets, merge(base, (; α=Float64(α), η=Float64(η), λ_q=Float64(λ_q), ωb0_2=Float64(ωb0_2), label)))
 end
 
-λ_q_values = round.(0.1:0.1:1.5; digits=2)
-for α in (1.0, 2.0), η in (0.05, 0.5), λ_q in λ_q_values
-    add_case!(param_sets, seen; α, η, λ_q)
+# Gap range for current Rice-Mele parameters is approximately 2.04 to 4.12.
+# Main diagnostic: first bath off, so the flat second bath is isolated.
+for ωb0_2 in (1.0, 1.5, 2.0, 2.2, 2.5, 3.0, 3.5, 4.0)
+    add_case!(param_sets, seen; α=0.0, η=0.05, λ_q=1.0, ωb0_2)
+end
+
+# Controls: same frequency scan with weak/strong first bath kept on.
+for ωb0_2 in (1.0, 1.5, 2.0, 2.2, 2.5, 3.0, 3.5, 4.0), α in (1.0, 4.0)
+    add_case!(param_sets, seen; α, η=0.05, λ_q=1.0, ωb0_2)
 end
 
 println("Total unique runs: $(length(param_sets))")
 for p in param_sets
     println(
-        "Case $(p.label): init=$(p.init_type), bath1=(α=$(p.α), η=$(p.η), λ_q=$(p.λ_q)), Tb=$(p.Tb), ",
+        "Case $(p.label): α=$(p.α), η=$(p.η), λ_q=$(p.λ_q), Tb=$(p.Tb), ",
         "bath2=(α2=$(p.α2), ωb0_2=$(p.ωb0_2), η2=$(p.η2), λ_q2=$(p.λ_q2)), tmax=$(tmax)",
     )
 end
@@ -77,7 +86,7 @@ results = pmap(param_sets) do p
     label = p.label
     run_params = Base.structdiff(p, NamedTuple{(:label,)})
     name_p = make_name(ModelElectronBath(; run_params...); tmax)
-    logfile = "logs/rice_two_bath_lq_fine_t60_$(label).log"
+    logfile = "logs/rice_flat_bath_resonance_t60_$(label).log"
 
     if !force && isfile("Data_rice/GL_$(name_p).jld2")
         open(logfile, "w") do io

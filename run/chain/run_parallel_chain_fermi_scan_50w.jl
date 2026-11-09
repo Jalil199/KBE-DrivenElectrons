@@ -1,5 +1,8 @@
 using Distributed
 
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
 # Targeted chain scan for approximate thermalization to a Fermi function.
 # This scan uses exactly 50 parameter combinations and is intended to run with
 # 50 workers in parallel while saving only equal-time occupations.
@@ -22,7 +25,8 @@ n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "50"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main.jl")
+const _MAIN = joinpath(pwd(), "main.jl")
+@everywhere include($_MAIN)
 
 tmax  = 60
 force = false

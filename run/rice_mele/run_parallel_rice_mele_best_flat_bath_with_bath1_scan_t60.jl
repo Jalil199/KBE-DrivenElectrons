@@ -1,10 +1,14 @@
 using Distributed
 
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
 n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "36"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main-rice_mele.jl")
+const _MAIN = joinpath(pwd(), "main-rice_mele.jl")
+@everywhere include($_MAIN)
 
 tmax = 60
 force = false
@@ -34,7 +38,16 @@ base = (
     v_b              = 0.2,
     wq_profile       = :power_exp,
     s_q              = 1.0,
-    use_bath2        = false,
+    use_bath2        = true,
+    α2               = 1.0,
+    ωb0_2            = 2.5,
+    v_b2             = 0.0,
+    η2               = 0.1,
+    dispersion_type2 = :linear,
+    boson_kernel2    = :spectral,
+    wq_profile2      = :power_exp,
+    s_q2             = 0.0,
+    λ_q2             = 10.0,
 )
 
 param_sets = NamedTuple[]
@@ -44,7 +57,7 @@ function add_case!(param_sets, seen; init_type, α, η, λ_q)
     key = (Symbol(init_type), Float64(α), Float64(η), Float64(λ_q))
     key in seen && return
     push!(seen, key)
-    label = Symbol("$(init_type)_a$(α)_eta$(η)_lq$(λ_q)_bath1only")
+    label = Symbol("$(init_type)_a$(α)_eta$(η)_lq$(λ_q)_bestb2")
     push!(param_sets, merge(base, (; init_type=Symbol(init_type), α=Float64(α), η=Float64(η), λ_q=Float64(λ_q), label)))
 end
 
@@ -56,7 +69,7 @@ println("Total unique runs: $(length(param_sets))")
 for p in param_sets
     println(
         "Case $(p.label): init=$(p.init_type), bath1=(α=$(p.α), η=$(p.η), λ_q=$(p.λ_q)), Tb=$(p.Tb), ",
-        "use_bath2=$(p.use_bath2), tmax=$(tmax)",
+        "bath2=(α2=$(p.α2), ωb0_2=$(p.ωb0_2), η2=$(p.η2), λ_q2=$(p.λ_q2)), tmax=$(tmax)",
     )
 end
 
@@ -66,7 +79,7 @@ results = pmap(param_sets) do p
     label = p.label
     run_params = Base.structdiff(p, NamedTuple{(:label,)})
     name_p = make_name(ModelElectronBath(; run_params...); tmax)
-    logfile = "logs/rice_bath1_only_control_t60_$(label).log"
+    logfile = "logs/rice_best_flat_bath_with_bath1_t60_$(label).log"
 
     if !force && isfile("Data_rice/GL_$(name_p).jld2")
         open(logfile, "w") do io
@@ -106,4 +119,3 @@ println("\n=== $(length(ok)) succeeded, $(length(skipped)) skipped, $(length(fai
 for r in failed
     println("FAILED $(r.label): ", r.msg)
 end
-

@@ -1,5 +1,8 @@
 using Distributed
 
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
 # Parallel runs need a writable Julia depot and distinct output filenames.
 # In restricted environments, a safe launch pattern is:
 #   JULIA_DEPOT_PATH=/tmp/julia-depot MPLCONFIGDIR=/tmp/mpl JULIA_WORKERS=2 julia --project=. run_parallel.jl
@@ -9,7 +12,8 @@ n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "10"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main.jl")
+const _MAIN = joinpath(pwd(), "main.jl")
+@everywhere include($_MAIN)
 
 # ── Parameter sweep ────────────────────────────────────────────────────────────
 # Put a vector of values for every parameter you want to vary.

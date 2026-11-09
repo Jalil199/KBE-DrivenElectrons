@@ -1,12 +1,16 @@
 using Distributed
 
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
 # Lightweight chain scan: solve full KBE dynamics, but save only equal-time
 # occupations n_k(t) and the time grid. This greatly reduces output size on disk.
 n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "8"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main.jl")
+const _MAIN = joinpath(pwd(), "main.jl")
+@everywhere include($_MAIN)
 
 tmax  = 60
 force = false

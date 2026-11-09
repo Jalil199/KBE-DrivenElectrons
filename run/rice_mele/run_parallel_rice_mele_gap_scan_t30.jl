@@ -1,10 +1,14 @@
 using Distributed
 
-n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "15"))
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
+n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "3"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-@everywhere include("./main-rice_mele.jl")
+const _MAIN = joinpath(pwd(), "main-rice_mele.jl")
+@everywhere include($_MAIN)
 
 tmax = 30
 force = true
@@ -29,28 +33,26 @@ base = (
     bath_type       = :dispersion,
     dispersion_type = :linear,
     boson_kernel    = :spectral,
+    η               = 0.05,
     ωA_max          = 20.0,
     dωA             = 0.01,
     wq_profile      = :power_exp,
     s_q             = 1.0,
+    λ_q             = 1.0,
     v_b             = 0.0,
 )
 
-param_sets = NamedTuple[]
+baths = [
+    (; label = :gap20, ωb0 = 2.0),
+    (; label = :gap22, ωb0 = 2.2),
+    (; label = :gap25, ωb0 = 2.5),
+]
 
-for ωb0 in (2.2, 2.5, 2.8, 3.0)
-    for λ_q in (1.0, 3.0, 10.0)
-        push!(param_sets, merge(base, (; η=0.05, ωb0, λ_q, label=Symbol("w$(ωb0)_l$(λ_q)_eta0.05"))))
-    end
-end
-
-for η in (0.02, 0.1, 0.2)
-    push!(param_sets, merge(base, (; η, ωb0=2.5, λ_q=10.0, label=Symbol("w2.5_l10.0_eta$(η)"))))
-end
+param_sets = [merge(base, (; ωb0=b.ωb0, label=b.label)) for b in baths]
 
 println("Total runs: $(length(param_sets))")
 for p in param_sets
-    println("Case $(p.label): ωb0=$(p.ωb0), λ_q=$(p.λ_q), η=$(p.η), v_b=$(p.v_b)")
+    println("Case $(p.label): ωb0=$(p.ωb0), v_b=$(p.v_b)")
 end
 
 mkpath("logs")
@@ -59,7 +61,7 @@ results = pmap(param_sets) do p
     label = p.label
     run_params = Base.structdiff(p, NamedTuple{(:label,)})
     name_p = make_name(ModelElectronBath(; run_params...); tmax)
-    logfile = "logs/rice_resonance_cutoff_t30_$(label).log"
+    logfile = "logs/rice_gap_scan_t30_$(label).log"
 
     if !force && isfile("Data_rice/GL_$(name_p).jld2")
         open(logfile, "a") do io

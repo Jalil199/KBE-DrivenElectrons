@@ -1,10 +1,13 @@
 using Distributed
 
+# Run from the repository root so outputs land in Data*/ and logs/.
+cd(normpath(joinpath(@__DIR__, "..", "..")))
+
 n_workers = parse(Int, get(ENV, "JULIA_WORKERS", "6"))
 addprocs(n_workers; exeflags="--project=$(Base.active_project())")
 println("Workers: ", workers())
 
-const _MAIN = normpath(joinpath(@__DIR__, "../../main-rice_mele.jl"))
+const _MAIN = joinpath(pwd(), "main-rice_mele.jl")
 @everywhere include($_MAIN)
 
 tmax  = 30
