@@ -11,7 +11,7 @@ rc("xtick", labelsize=11)
 rc("ytick", labelsize=11)
 rc("legend", fontsize=9)
 
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 const OMEGA_B0 = 0.1
 const V_B = 0.2
 const GAMMA = 1.0

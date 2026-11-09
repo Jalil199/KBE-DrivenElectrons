@@ -6,7 +6,7 @@ using PyPlot
 
 const ROOT = abspath(joinpath(@__DIR__, "..", "..", ".."))
 const DATA_DIR = joinpath(ROOT, "Data_rice")
-const OUT_DIR = joinpath(ROOT, "distributions_rice")
+const OUT_DIR = joinpath(ROOT, "outputs/distributions_rice")
 mkpath(OUT_DIR)
 
 const SIGMA_X = [0.0 1.0; 1.0 0.0]

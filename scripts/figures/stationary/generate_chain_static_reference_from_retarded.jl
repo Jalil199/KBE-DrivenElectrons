@@ -10,7 +10,7 @@ rc("xtick", labelsize=12)
 rc("ytick", labelsize=12)
 rc("legend", fontsize=11)
 
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 mkpath(OUTPUT_DIR)
 
 function fermi_fd(omega, T, mu)

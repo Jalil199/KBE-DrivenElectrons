@@ -168,9 +168,9 @@ function make_figure(dataset_name::AbstractString, mode::Symbol, outdir::Abstrac
 end
 
 mode = length(ARGS) >= 1 && ARGS[1] == "rice" ? :rice : :chain
-source_dir = length(ARGS) >= 2 ? ARGS[2] : (mode == :chain ? "occupations" : "occupations_rice")
+source_dir = length(ARGS) >= 2 ? ARGS[2] : (mode == :chain ? "outputs/occupations" : "outputs/occupations_rice")
 prefix = mode == :chain ? "occupation_" : "occupation_rice_"
-output_dir = length(ARGS) >= 3 ? ARGS[3] : (mode == :chain ? "sepectrums_sumk" : "sepectrums_sumk_rice")
+output_dir = length(ARGS) >= 3 ? ARGS[3] : (mode == :chain ? "outputs/sepectrums_sumk" : "outputs/sepectrums_sumk_rice")
 mkpath(output_dir)
 
 dataset_names = datasets_from_occupations(source_dir, prefix)

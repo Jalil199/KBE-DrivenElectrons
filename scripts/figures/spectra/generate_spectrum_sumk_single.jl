@@ -16,7 +16,7 @@ rc("xtick", labelsize=18)
 rc("ytick", labelsize=18)
 rc("legend", fontsize=15)
 
-const OUTPUT_DIR = "sepectrums_sumk"
+const OUTPUT_DIR = "outputs/sepectrums_sumk"
 const TARGET_TIME = 20.0
 const DEFAULT_NAME = "L100_Te1.0_Tb0.05_u0.0_γ1.0_dispersion_α0.5_s1.0_ωc10.0_linear_delta_η0.05_v_b0.2_ωb00.1_power_exp_s_q1.0_λ_q1.0_t050.0_ω03.141592653589793_σ2.0_A0.0_switch0_ti3.0_to20.0_tmax60"
 

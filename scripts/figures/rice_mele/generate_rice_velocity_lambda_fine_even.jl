@@ -6,8 +6,8 @@ using PyPlot
 
 const ROOT = abspath(joinpath(@__DIR__, "..", "..", ".."))
 const DATA_DIR = joinpath(ROOT, "Data_rice")
-const OUT_DIR = joinpath(ROOT, "distributions_rice")
-const CACHE_DIR = joinpath(ROOT, "analysis_cache", "rice_velocity_lambda_fine_even")
+const OUT_DIR = joinpath(ROOT, "outputs/distributions_rice")
+const CACHE_DIR = joinpath(ROOT, "outputs/analysis_cache", "rice_velocity_lambda_fine_even")
 
 mkpath(OUT_DIR)
 mkpath(CACHE_DIR)

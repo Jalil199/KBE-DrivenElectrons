@@ -16,7 +16,7 @@ rc("legend", fontsize=16)
 
 const DATA_NAME = "L100_Te1.0_Tb0.1_u0.0_γ1.0_dispersion_α1.0_s1.0_ωc10.0_linear_spectral_η0.05_v_b0.2_ωb00.1_power_exp_s_q1.0_λ_q1.0_t050.0_ω03.141592653589793_σ2.0_A0.0_switch0_ti3.0_to20.0_tmax30"
 const TARGET_TIMES = [0.0, 20.0, 30.0]
-const OUTPUT_FILE = "distributions/nk_corrected_case_t30.png"
+const OUTPUT_FILE = "outputs/distributions/nk_corrected_case_t30.png"
 
 nearest_time_index(ts, t_target) = argmin(abs.(ts .- t_target))
 

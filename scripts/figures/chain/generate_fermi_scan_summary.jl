@@ -16,7 +16,7 @@ rc("xtick", labelsize=13)
 rc("ytick", labelsize=13)
 rc("legend", fontsize=11)
 
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 mkpath(OUTPUT_DIR)
 
 fermi(ϵ, T, μ) = 1 / (exp((ϵ - μ) / T) + 1)

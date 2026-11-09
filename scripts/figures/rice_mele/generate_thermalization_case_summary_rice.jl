@@ -165,6 +165,6 @@ fig.text(0.5, -0.02,
 fig.tight_layout()
 fig.subplots_adjust(bottom=0.20, wspace=0.32)
 
-outfile = joinpath("distributions", "thermalization_case_summary_rice_" * dataset * ".png")
+outfile = joinpath("outputs/distributions", "thermalization_case_summary_rice_" * dataset * ".png")
 fig.savefig(outfile; dpi=240, bbox_inches="tight")
 println("Saved " * outfile)

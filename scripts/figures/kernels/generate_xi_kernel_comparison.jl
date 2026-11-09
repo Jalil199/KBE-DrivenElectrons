@@ -16,7 +16,7 @@ rc("ytick", labelsize=18)
 rc("legend", fontsize=14)
 
 const TIMES = [0.0, 5.0, 10.0]
-const OUTPUT_DIR = "kernels"
+const OUTPUT_DIR = "outputs/kernels"
 
 mkpath(OUTPUT_DIR)
 

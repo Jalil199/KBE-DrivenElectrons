@@ -6,7 +6,7 @@ const ROOT = normpath(joinpath(@__DIR__, "..", "..", ".."))
 include(joinpath(ROOT, "main-rice_mele.jl"))
 
 const DATA_DIR = joinpath(ROOT, "Data_rice")
-const OUT_DIR = joinpath(ROOT, "distributions_rice")
+const OUT_DIR = joinpath(ROOT, "outputs/distributions_rice")
 mkpath(OUT_DIR)
 
 array_data(x) = hasproperty(x, :data) ? getproperty(x, :data) : x

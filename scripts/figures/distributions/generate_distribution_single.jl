@@ -17,7 +17,7 @@ rc("ytick", labelsize=18)
 rc("legend", fontsize=14)
 
 const TARGET_TIMES = [30.0, 40.0, 50.0]
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 const DEFAULT_DATASET = "L100_Te1.0_Tb0.05_u0.0_γ1.0_dispersion_α0.5_s1.0_ωc10.0_linear_delta_η0.05_v_b0.2_ωb00.1_power_exp_s_q1.0_λ_q1.0_t050.0_ω03.141592653589793_σ2.0_A0.0_switch0_ti3.0_to20.0_tmax60"
 
 gauss_window(N::Integer) = begin

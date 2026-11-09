@@ -4,7 +4,7 @@ using PyPlot
 
 include(joinpath(@__DIR__, "main-rice_mele.jl"))
 
-const OUT_DIR = joinpath(@__DIR__, "distributions")
+const OUT_DIR = joinpath(@__DIR__, "..", "..", "..", "outputs", "outputs/distributions")
 mkpath(OUT_DIR)
 
 array_data(x) = hasproperty(x, :data) ? getproperty(x, :data) : x

@@ -10,7 +10,7 @@ rc("xtick", labelsize=11)
 rc("ytick", labelsize=11)
 rc("legend", fontsize=9)
 
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 mkpath(OUTPUT_DIR)
 
 gauss_window(N::Integer) = begin

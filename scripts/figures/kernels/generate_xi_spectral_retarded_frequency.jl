@@ -15,7 +15,7 @@ rc("xtick", labelsize=18)
 rc("ytick", labelsize=18)
 rc("legend", fontsize=13)
 
-const OUTPUT_DIR = "kernels"
+const OUTPUT_DIR = "outputs/kernels"
 mkpath(OUTPUT_DIR)
 
 eta = length(ARGS) >= 1 ? parse(Float64, ARGS[1]) : 0.5

@@ -16,7 +16,7 @@ rc("legend", fontsize=12)
 
 const TARGET_TIMES = [0.0, 20.0, 60.0]
 const ALPHA_FILTER = length(ARGS) >= 1 ? ARGS[1] : nothing
-const OUTPUT_DIR = length(ARGS) >= 2 ? ARGS[2] : "occupations_rice"
+const OUTPUT_DIR = length(ARGS) >= 2 ? ARGS[2] : "outputs/occupations_rice"
 
 nearest_time_index(ts, t_target) = argmin(abs.(ts .- t_target))
 

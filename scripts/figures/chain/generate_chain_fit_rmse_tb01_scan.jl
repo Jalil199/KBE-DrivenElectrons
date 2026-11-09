@@ -9,7 +9,7 @@ rc("xtick", labelsize=10)
 rc("ytick", labelsize=10)
 rc("legend", fontsize=8)
 
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 mkpath(OUTPUT_DIR)
 
 array_data(x) = hasproperty(x, :data) ? getproperty(x, :data) : x

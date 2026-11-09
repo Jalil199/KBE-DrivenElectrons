@@ -23,8 +23,10 @@ The codebase includes:
 - `test/` — unit tests (`julia --project=. test/runtests.jl`).
 - `legacy/` — earlier `KadanoffBaym.jl`-based code, kept for reference.
 
-Not tracked by git (see `.gitignore`): simulation output (`Data/`, `Data_rice/`),
-logs, and generated figures (`distributions*/`, `spectrums*/`, `sepectrums_sumk*/`, ...).
+- `outputs/` — generated figures, spectra, occupations and analysis caches
+  (`distributions*/`, `spectrums*/`, `sepectrums_sumk*/`, `occupations*/`, `kernels/`, `analysis_cache/`).
+
+Not tracked by git (see `.gitignore`): simulation output (`Data/`, `Data_rice/`), `logs/` and `outputs/`.
 
 ## Typical Workflow
 1. Configure physical and numerical parameters in `main.jl` (e.g., lattice size, temperature, pulse parameters, bath coupling).

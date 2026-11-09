@@ -3,7 +3,7 @@ using PyPlot
 
 const ROOT = @__DIR__
 const DATA_DIR = joinpath(ROOT, "Data")
-const OUT_DIR = joinpath(ROOT, "distributions")
+const OUT_DIR = joinpath(ROOT, "outputs/distributions")
 mkpath(OUT_DIR)
 
 function nearest_index(ts, target)

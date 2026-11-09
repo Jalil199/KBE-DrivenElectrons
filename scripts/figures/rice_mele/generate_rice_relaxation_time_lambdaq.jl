@@ -4,8 +4,8 @@ using Printf
 using PyPlot
 
 const ROOT = abspath(joinpath(@__DIR__, "..", "..", ".."))
-const OUT_DIR = joinpath(ROOT, "distributions_rice")
-const VELOCITY_CACHE = joinpath(ROOT, "analysis_cache", "rice_velocity_lambda_fine_even")
+const OUT_DIR = joinpath(ROOT, "outputs/distributions_rice")
+const VELOCITY_CACHE = joinpath(ROOT, "outputs/analysis_cache", "rice_velocity_lambda_fine_even")
 
 mkpath(OUT_DIR)
 

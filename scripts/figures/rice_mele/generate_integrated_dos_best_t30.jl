@@ -6,7 +6,7 @@ using FFTW
 
 const ROOT = abspath(joinpath(@__DIR__, "..", "..", ".."))
 const DATA_DIR = joinpath(ROOT, "Data_rice")
-const OUT_DIR = joinpath(ROOT, "distributions_rice")
+const OUT_DIR = joinpath(ROOT, "outputs/distributions_rice")
 const TARGET_TIME = 30.0
 const DOS_MASK_FRACTION = 0.03
 const DOS_LOOSE_MASK_FRACTION = 0.003

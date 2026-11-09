@@ -15,7 +15,7 @@ rc("xtick", labelsize=14)
 rc("ytick", labelsize=14)
 rc("legend", fontsize=12)
 
-const OUTPUT_DIR = "distributions"
+const OUTPUT_DIR = "outputs/distributions"
 mkpath(OUTPUT_DIR)
 
 const DEFAULT_DATASET = "L100_Te1.0_Tb0.2_u0.0_γ1.0_dispersion_α1.0_s1.0_ωc10.0_linear_spectral_η0.5_v_b0.2_ωb00.1_power_exp_s_q1.0_λ_q0.5_t050.0_ω03.141592653589793_σ2.0_A0.0_switch0_ti3.0_to20.0_tmax60"

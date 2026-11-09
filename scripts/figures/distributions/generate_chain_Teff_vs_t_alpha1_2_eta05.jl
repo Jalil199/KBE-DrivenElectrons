@@ -6,7 +6,7 @@ using PyPlot
 const ROOT = normpath(joinpath(@__DIR__, "..", "..", ".."))
 
 const DATA_DIR = joinpath(ROOT, "Data")
-const OUT_DIR  = joinpath(ROOT, "distributions_chain")
+const OUT_DIR  = joinpath(ROOT, "outputs/distributions_chain")
 mkpath(OUT_DIR)
 
 fermi_dirac(ε, T, μ=0.0) = 1 / (exp((ε - μ) / T) + 1)

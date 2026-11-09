@@ -500,8 +500,8 @@ Si quieres exportar resultados para compararlos luego con las corridas temporale
         ),
         code_cell(
             """tag = "L$(params.L)_α$(params.α)_Tb$(params.Tb)_η$(params.η)_pc$(params.λ_q)_Nω$(params.Nω)"
-png_out = joinpath("distributions", "chain_stationary_scba_notebook_" * tag * ".png")
-jld2_out = joinpath("distributions", "chain_stationary_scba_notebook_" * tag * ".jld2")
+png_out = joinpath("outputs/distributions", "chain_stationary_scba_notebook_" * tag * ".png")
+jld2_out = joinpath("outputs/distributions", "chain_stationary_scba_notebook_" * tag * ".jld2")
 
 fig.savefig(png_out; dpi=220, bbox_inches="tight")
 out_save = (; ks=out.ks, ϵs=out.ϵs, ωs=out.ωs, GR=out.GR, GL=out.GL, GG=out.GG,
