@@ -4,8 +4,8 @@ Real-time **Kadanoff–Baym equations** (KBE) for lattice electrons coupled to a
 bosonic bath, written in Julia on top of
 [`KadanoffBaym.jl`](https://github.com/NonequilibriumDynamics/KadanoffBaym.jl).
 
-The code propagates the two-time Green functions $G^<(k;t,t')$ and
-$G^>(k;t,t')$ of a 1D lattice model under an optional laser pulse, with a
+The code propagates the two-time Green functions $`G^<(k;t,t')`$ and
+$`G^>(k;t,t')`$ of a 1D lattice model under an optional laser pulse, with a
 momentum-resolved electron–boson self-energy. Its main use is to study
 **relaxation and thermalization** of photoexcited (or initially inverted)
 carriers: band populations, effective temperatures, spectral functions and
@@ -17,25 +17,25 @@ relaxation times.
 
 | File | Model | Bands |
 |---|---|---|
-| `main.jl` | Single-band chain, $\epsilon_k = u - 2\gamma\cos k$ | 1 |
-| `main-rice_mele.jl` | Rice–Mele chain, $H_k = \mathbf d(k)\cdot\boldsymbol\sigma$ with $d_x = t_1 + t_2\cos k$, $d_y = t_2\sin k$, $d_z = \Delta/2$ | 2 |
+| `main.jl` | Single-band chain, $`\epsilon_k = u - 2\gamma\cos k`$ | 1 |
+| `main-rice_mele.jl` | Rice–Mele chain, $`H_k = \vec{d}(k)\cdot\vec{\sigma}`$ with $`d_x = t_1 + t_2\cos k`$, $`d_y = t_2\sin k`$, $`d_z = \Delta/2`$ | 2 |
 
 Both models share the same structure:
 
-- **Drive.** Peierls substitution $k \to k - A(t)$ with a Gaussian pulse
-  $A(t) = A \exp[-(t-t_0)^2/2\sigma^2] \sin(\omega_0 t)$. Set `A = 0.0` to
+- **Drive.** Peierls substitution $`k \to k - A(t)`$ with a Gaussian pulse
+  $`A(t) = A \exp[-(t-t_0)^2/2\sigma^2] \sin(\omega_0 t)`$. Set `A = 0.0` to
   study relaxation without light.
 - **Bath.** Second-order (SCBA) self-energy with momentum exchange,
 
   ```math
-  \Sigma^{\lessgtr}_{k}(t,t') = \frac{i}{L}\sum_{q} \Xi^{\lessgtr}_{q}(t,t')\, G^{\lessgtr}_{k-q}(t,t')
+  \Sigma^{<,>}_{k}(t,t') = \frac{i}{L}\sum_{q} \Xi^{<,>}_{q}(t,t')\, G^{<,>}_{k-q}(t,t')
   ```
 
-  The bosonic kernel $\Xi_q$ can be:
-  - `bath_type = :spectral_density`: a local Ohmic-like bath $J(\omega)=\alpha|\omega|^s e^{-|\omega|/\omega_c}$;
-  - `bath_type = :dispersion`: dispersive bosons $\omega_q = \omega_{b0} + v_b|q|$ (`:linear`) or $\omega_{b0} + 2v_b|\sin(q/2)|$ (`:sin_lattice`),
+  The bosonic kernel $`\Xi_q`$ can be:
+  - `bath_type = :spectral_density`: a local Ohmic-like bath $`J(\omega)=\alpha|\omega|^s e^{-|\omega|/\omega_c}`$;
+  - `bath_type = :dispersion`: dispersive bosons $`\omega_q = \omega_{b0} + v_b|q|`$ (`:linear`) or $`\omega_{b0} + 2v_b|\sin(q/2)|`$ (`:sin_lattice`),
     with sharp modes (`boson_kernel = :delta`, damping `η`) or Lorentzian spectral functions (`boson_kernel = :spectral`).
-  - Momentum weights $w_q$: `:uniform` or `:power_exp`, $|q|^{s_q} e^{-|q|/\lambda_q}$; coupling $g_q^2 = \alpha w_q$.
+  - Momentum weights $`w_q`$: `:uniform` or `:power_exp`, $`|q|^{s_q} e^{-|q|/\lambda_q}`$; coupling $`g_q^2 = \alpha w_q`$.
 - **Second bath** (Rice–Mele only, `use_bath2 = true`): an extra, typically flat
   (Einstein-like) boson branch (`α2`, `ωb0_2`, `η2`, `λ_q2`, …) to provide
   interband decay.
@@ -71,8 +71,8 @@ Results are written to `Data_rice/` (Rice–Mele) or `Data/` (chain):
 
 | File | Content |
 |---|---|
-| `GL_<name>.jld2` | $G^<$ on the full two-time grid |
-| `GG_<name>.jld2` | $G^>$ on the full two-time grid |
+| `GL_<name>.jld2` | $`G^<`$ on the full two-time grid |
+| `GG_<name>.jld2` | $`G^>`$ on the full two-time grid |
 | `ts_<name>.jld2` | solver output (adaptive time grid `sol.t`) |
 
 `<name>` is built by `make_name()` and encodes every parameter, e.g.
@@ -81,7 +81,7 @@ Results are written to `Data_rice/` (Rice–Mele) or `Data/` (chain):
 bath is on. The chain solver also accepts `save_mode = :occupations_only` to
 save only the equal-time occupations.
 
-> **Cost.** Memory and time grow as $L \times N_t^2$ (two-time storage). The full
+> **Cost.** Memory and time grow as $`L \times N_t^2`$ (two-time storage). The full
 > `GL`/`GG` files for `L = 80`, `tmax = 60` are ~1.6 GB each.
 
 ### Parameter sweeps
@@ -110,9 +110,9 @@ Figure and analysis scripts are in `scripts/figures/<topic>/` and write to
 julia --project=. scripts/figures/rice_mele/generate_rice_exciton_teff_coherence_lambda_fine_even.jl
 ```
 
-Typical observables: band occupations $N_\pm(t)$, momentum distributions
-$n_k(t)$, effective temperature (Fermi fit or excitonic ansatz), interband
-coherences, $A(k,\omega)$ and $F(k,\omega)$ spectra, and relaxation-time
+Typical observables: band occupations $`N_\pm(t)`$, momentum distributions
+$`n_k(t)`$, effective temperature (Fermi fit or excitonic ansatz), interband
+coherences, $`A(k,\omega)`$ and $`F(k,\omega)`$ spectra, and relaxation-time
 estimates.
 
 ---
@@ -150,18 +150,18 @@ HANDOFF_*/              bundles copied to kubo for figure making
 julia --project=. test/runtests.jl
 ```
 
-They check the KBE two-time storage helpers and the $k-q$ index map on the
-$[-\pi,\pi)$ grid.
+They check the KBE two-time storage helpers and the $`k-q`$ index map on the
+$`[-\pi,\pi)`$ grid.
 
 ---
 
 ## Notes
 
-- **Normalization.** The momentum weights $w_q$ are *not* normalized by
-  $\sum_q w_q$; the overall bath strength is set by `α` (and `η`, `λ_q`). Older
+- **Normalization.** The momentum weights $`w_q`$ are *not* normalized by
+  $`\sum_q w_q`$; the overall bath strength is set by `α` (and `η`, `λ_q`). Older
   data (before 2026-04-22) used the summed normalization.
-- **k-grid.** $k \in [-\pi, \pi)$ with $L$ points; `kmq_idx` includes the
-  half-zone offset needed to map $k-q$ back onto the grid.
+- **k-grid.** $`k \in [-\pi, \pi)`$ with $`L`$ points; `kmq_idx` includes the
+  half-zone offset needed to map $`k-q`$ back onto the grid.
 - **Restricted environments.** `run/*/run_parallel*_local.sh` set local
   `JULIA_DEPOT_PATH` and `MPLCONFIGDIR` for clusters where the defaults are read-only.
 - **Material recovered from kubo (2026-09-29).** `notebooks/final_figure/`
