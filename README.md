@@ -23,15 +23,19 @@ relaxation times.
 Both models share the same structure:
 
 - **Drive.** Peierls substitution $k \to k - A(t)$ with a Gaussian pulse
-  $A(t) = A\, e^{-(t-t_0)^2/2\sigma^2}\sin(\omega_0 t)$. Set `A = 0.0` to
+  $A(t) = A \exp[-(t-t_0)^2/2\sigma^2] \sin(\omega_0 t)$. Set `A = 0.0` to
   study relaxation without light.
 - **Bath.** Second-order (SCBA) self-energy with momentum exchange,
-  $\Sigma^{\lessgtr}_k(t,t') = \frac{i}{L}\sum_q \Xi^{\lessgtr}_q(t,t')\,G^{\lessgtr}_{k-q}(t,t')$.
+
+  ```math
+  \Sigma^{\lessgtr}_{k}(t,t') = \frac{i}{L}\sum_{q} \Xi^{\lessgtr}_{q}(t,t')\, G^{\lessgtr}_{k-q}(t,t')
+  ```
+
   The bosonic kernel $\Xi_q$ can be:
   - `bath_type = :spectral_density`: a local Ohmic-like bath $J(\omega)=\alpha|\omega|^s e^{-|\omega|/\omega_c}$;
   - `bath_type = :dispersion`: dispersive bosons $\omega_q = \omega_{b0} + v_b|q|$ (`:linear`) or $\omega_{b0} + 2v_b|\sin(q/2)|$ (`:sin_lattice`),
     with sharp modes (`boson_kernel = :delta`, damping `η`) or Lorentzian spectral functions (`boson_kernel = :spectral`).
-  - Momentum weights $w_q$: `:uniform` or `:power_exp`, $|q|^{s_q} e^{-|q|/\lambda_q}$; coupling $g_q^2 = \alpha\, w_q$.
+  - Momentum weights $w_q$: `:uniform` or `:power_exp`, $|q|^{s_q} e^{-|q|/\lambda_q}$; coupling $g_q^2 = \alpha w_q$.
 - **Second bath** (Rice–Mele only, `use_bath2 = true`): an extra, typically flat
   (Einstein-like) boson branch (`α2`, `ωb0_2`, `η2`, `λ_q2`, …) to provide
   interband decay.
